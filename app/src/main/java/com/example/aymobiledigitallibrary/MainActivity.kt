@@ -182,7 +182,7 @@ fun HomeScreen(
             modifier = Modifier.padding(top = 8.dp)
         )
         Text(
-            text = "Browse the article list, then answer memory questions about article locations.",
+            text = "Explore the article list as you would in a mobile digital library. After browsing, you will answer several follow-up questions.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 12.dp, bottom = 24.dp)
         )
@@ -234,10 +234,15 @@ fun PaginationScreen(
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
+        Text(
+            text = "Task: Browse the article list and identify articles that seem relevant to mobile search, interface navigation, or spatial memory. When finished, tap Finish Browsing.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+        )
 
         Button(
             onClick = onBackClick,
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Text("Back")
         }
@@ -309,10 +314,15 @@ fun InfiniteScrollScreen(
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
+        Text(
+            text = "Task: Browse the article list and identify articles that seem relevant to mobile search, interface navigation, or spatial memory. When finished, tap Finish Browsing.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+        )
 
         Button(
             onClick = onBackClick,
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Text("Back")
         }
@@ -463,6 +473,11 @@ fun ResultScreen(
             modifier = Modifier.padding(top = 4.dp)
         )
         Text(
+            text = "Please record this result in the experiment spreadsheet.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        Text(
             text = "Higher score indicates better recall of article location.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 12.dp)
@@ -486,7 +501,7 @@ fun getLocationZone(index: Int): LocationZone {
 }
 
 fun createMemoryQuestions(articles: List<Article>): List<MemoryQuestion> {
-    val targetIndexes = listOf(4, 8, 13, 22, 27)
+    val targetIndexes = listOf(3, 8, 12, 17, 22, 27)
     return targetIndexes.map { index ->
         MemoryQuestion(
             article = articles[index],
