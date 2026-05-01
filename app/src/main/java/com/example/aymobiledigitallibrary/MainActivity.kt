@@ -20,6 +20,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,7 +51,20 @@ class MainActivity : ComponentActivity() {
 enum class Screen {
     HOME,
     PAGINATION,
+    INFINITE_SCROLL,
+    MEMORY_TEST,
+    RESULT
+}
+
+enum class InterfaceMode {
+    PAGINATION,
     INFINITE_SCROLL
+}
+
+enum class LocationZone {
+    TOP,
+    MIDDLE,
+    BOTTOM
 }
 
 // Data model for one article item.
@@ -60,31 +75,85 @@ data class Article(
     val abstract: String
 )
 
+data class MemoryQuestion(
+    val article: Article,
+    val correctZone: LocationZone
+)
+
 @Composable
 fun AppContent(modifier: Modifier = Modifier) {
-    // Keeps track of the current screen.
     var currentScreen by remember { mutableStateOf(Screen.HOME) }
+    var selectedMode by remember { mutableStateOf(InterfaceMode.PAGINATION) }
+    var browsingStartTime by remember { mutableLongStateOf(0L) }
+    var browsingDurationSeconds by remember { mutableLongStateOf(0L) }
 
     // Fixed dataset of 30 articles, reused by BOTH interfaces.
     val articles = remember { createArticleDataset() }
+    val memoryQuestions = remember { createMemoryQuestions(articles) }
+    val participantAnswers = remember { mutableStateListOf<LocationZone>() }
 
     when (currentScreen) {
         Screen.HOME -> HomeScreen(
             modifier = modifier,
-            onPaginationClick = { currentScreen = Screen.PAGINATION },
-            onInfiniteScrollClick = { currentScreen = Screen.INFINITE_SCROLL }
+            onPaginationClick = {
+                selectedMode = InterfaceMode.PAGINATION
+                browsingStartTime = System.currentTimeMillis()
+                currentScreen = Screen.PAGINATION
+            },
+            onInfiniteScrollClick = {
+                selectedMode = InterfaceMode.INFINITE_SCROLL
+                browsingStartTime = System.currentTimeMillis()
+                currentScreen = Screen.INFINITE_SCROLL
+            }
         )
 
         Screen.PAGINATION -> PaginationScreen(
             modifier = modifier,
             articles = articles,
-            onBackClick = { currentScreen = Screen.HOME }
+            onBackClick = { currentScreen = Screen.HOME },
+            onFinishBrowsing = {
+                browsingDurationSeconds = ((System.currentTimeMillis() - browsingStartTime) / 1000).coerceAtLeast(0L)
+                participantAnswers.clear()
+                currentScreen = Screen.MEMORY_TEST
+            }
         )
 
         Screen.INFINITE_SCROLL -> InfiniteScrollScreen(
             modifier = modifier,
             articles = articles,
-            onBackClick = { currentScreen = Screen.HOME }
+            onBackClick = { currentScreen = Screen.HOME },
+            onFinishBrowsing = {
+                browsingDurationSeconds = ((System.currentTimeMillis() - browsingStartTime) / 1000).coerceAtLeast(0L)
+                participantAnswers.clear()
+                currentScreen = Screen.MEMORY_TEST
+            }
+        )
+
+        Screen.MEMORY_TEST -> SpatialMemoryTestScreen(
+            modifier = modifier,
+            questions = memoryQuestions,
+            onBackClick = {
+                participantAnswers.clear()
+                currentScreen = Screen.HOME
+            },
+            onAnswerSelected = { zone ->
+                participantAnswers.add(zone)
+                if (participantAnswers.size == memoryQuestions.size) {
+                    currentScreen = Screen.RESULT
+                }
+            }
+        )
+
+        Screen.RESULT -> ResultScreen(
+            modifier = modifier,
+            interfaceMode = selectedMode,
+            questions = memoryQuestions,
+            answers = participantAnswers.toList(),
+            browsingDurationSeconds = browsingDurationSeconds,
+            onBackToHome = {
+                participantAnswers.clear()
+                currentScreen = Screen.HOME
+            }
         )
     }
 }
@@ -110,7 +179,12 @@ fun HomeScreen(
         Text(
             text = "Interface Experiment",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        Text(
+            text = "Browse the article list, then answer memory questions about article locations.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 12.dp, bottom = 24.dp)
         )
 
         Button(
@@ -134,15 +208,17 @@ fun HomeScreen(
     }
 }
 
+// Research condition 1: page-based navigation with page cues.
 @Composable
 fun PaginationScreen(
     modifier: Modifier = Modifier,
     articles: List<Article>,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onFinishBrowsing: () -> Unit
 ) {
     val pageSize = 10
     val totalPages = (articles.size + pageSize - 1) / pageSize
-    var currentPage by remember { mutableStateOf(0) } // zero-based index
+    var currentPage by remember { mutableStateOf(0) }
 
     val startIndex = currentPage * pageSize
     val endIndex = minOf(startIndex + pageSize, articles.size)
@@ -166,7 +242,6 @@ fun PaginationScreen(
             Text("Back")
         }
 
-        // Article list uses EXACT same card UI as infinite scroll.
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -204,14 +279,25 @@ fun PaginationScreen(
                 Text("Next")
             }
         }
+
+        Button(
+            onClick = onFinishBrowsing,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        ) {
+            Text("Finish Browsing")
+        }
     }
 }
 
+// Research condition 2: continuous scrolling without page cues.
 @Composable
 fun InfiniteScrollScreen(
     modifier: Modifier = Modifier,
     articles: List<Article>,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onFinishBrowsing: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -231,15 +317,181 @@ fun InfiniteScrollScreen(
             Text("Back")
         }
 
-        // Continuous list with no page controls.
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(articles) { article ->
                 ArticleCard(article = article)
             }
         }
+
+        Button(
+            onClick = onFinishBrowsing,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        ) {
+            Text("Finish Browsing")
+        }
+    }
+}
+
+// Post-browsing task to measure spatial memory using equivalent location zones.
+@Composable
+fun SpatialMemoryTestScreen(
+    modifier: Modifier = Modifier,
+    questions: List<MemoryQuestion>,
+    onBackClick: () -> Unit,
+    onAnswerSelected: (LocationZone) -> Unit
+) {
+    var currentQuestionIndex by remember { mutableStateOf(0) }
+    val currentQuestion = questions[currentQuestionIndex]
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "Spatial Memory Test",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Question ${currentQuestionIndex + 1} of ${questions.size}",
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Button(onClick = onBackClick) {
+            Text("Cancel and Return Home")
+        }
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = currentQuestion.article.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "Where was this article located?",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        }
+
+        Button(
+            onClick = {
+                onAnswerSelected(LocationZone.TOP)
+                if (currentQuestionIndex < questions.lastIndex) currentQuestionIndex++
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Top / Page 1 / Items 1-10")
+        }
+
+        Button(
+            onClick = {
+                onAnswerSelected(LocationZone.MIDDLE)
+                if (currentQuestionIndex < questions.lastIndex) currentQuestionIndex++
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Middle / Page 2 / Items 11-20")
+        }
+
+        Button(
+            onClick = {
+                onAnswerSelected(LocationZone.BOTTOM)
+                if (currentQuestionIndex < questions.lastIndex) currentQuestionIndex++
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Bottom / Page 3 / Items 21-30")
+        }
+    }
+}
+
+// Displays experiment outcome using the selected interface condition.
+@Composable
+fun ResultScreen(
+    modifier: Modifier = Modifier,
+    interfaceMode: InterfaceMode,
+    questions: List<MemoryQuestion>,
+    answers: List<LocationZone>,
+    browsingDurationSeconds: Long,
+    onBackToHome: () -> Unit
+) {
+    val score = questions.zip(answers).count { (question, answer) -> question.correctZone == answer }
+    val accuracy = if (questions.isNotEmpty()) (score * 100) / questions.size else 0
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Experiment Result",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Interface mode: ${if (interfaceMode == InterfaceMode.PAGINATION) "Pagination" else "Infinite Scroll"}",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+        Text(
+            text = "Score: $score / ${questions.size}",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        Text(
+            text = "Accuracy: $accuracy%",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        Text(
+            text = "Browsing duration: $browsingDurationSeconds seconds",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        Text(
+            text = "Higher score indicates better recall of article location.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+
+        Button(
+            onClick = onBackToHome,
+            modifier = Modifier.padding(top = 20.dp)
+        ) {
+            Text("Back to Home")
+        }
+    }
+}
+
+fun getLocationZone(index: Int): LocationZone {
+    return when (index) {
+        in 0..9 -> LocationZone.TOP
+        in 10..19 -> LocationZone.MIDDLE
+        else -> LocationZone.BOTTOM
+    }
+}
+
+fun createMemoryQuestions(articles: List<Article>): List<MemoryQuestion> {
+    val targetIndexes = listOf(4, 8, 13, 22, 27)
+    return targetIndexes.map { index ->
+        MemoryQuestion(
+            article = articles[index],
+            correctZone = getLocationZone(index)
+        )
     }
 }
 
