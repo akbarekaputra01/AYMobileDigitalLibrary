@@ -47,36 +47,40 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Simple app-level screens for beginner-friendly navigation in one file.
+// Single-activity screen flow with beginner-friendly state management.
 enum class Screen {
     HOME,
     PAGINATION,
     INFINITE_SCROLL,
-    MEMORY_TEST,
-    RESULT
+    LOCATION_RECALL_TEST,
+    RESULT,
+    QUESTIONNAIRE,
+    FINAL_SUMMARY
 }
 
+// Interface mode is the independent variable in this experiment.
 enum class InterfaceMode {
     PAGINATION,
     INFINITE_SCROLL
 }
 
+// Location zones are used by the location recall test.
 enum class LocationZone {
     TOP,
     MIDDLE,
     BOTTOM
 }
 
-// Data model for one article item.
-data class Article(
+data class LibraryRecord(
     val title: String,
-    val authors: String,
+    val creators: String,
     val year: Int,
-    val abstract: String
+    val type: String,
+    val description: String
 )
 
 data class MemoryQuestion(
-    val article: Article,
+    val record: LibraryRecord,
     val correctZone: LocationZone
 )
 
@@ -87,10 +91,27 @@ fun AppContent(modifier: Modifier = Modifier) {
     var browsingStartTime by remember { mutableLongStateOf(0L) }
     var browsingDurationSeconds by remember { mutableLongStateOf(0L) }
 
-    // Fixed dataset of 30 articles, reused by BOTH interfaces.
-    val articles = remember { createArticleDataset() }
-    val memoryQuestions = remember { createMemoryQuestions(articles) }
+    // Shared dataset and fixed recall targets for both interface conditions.
+    val records = remember { createLibraryRecordDataset() }
+    val memoryQuestions = remember { createMemoryQuestions(records) }
     val participantAnswers = remember { mutableStateListOf<LocationZone>() }
+
+    // Post-task questionnaire state (5 Likert items, values 1..5).
+    val questionnaireResponses = remember { mutableStateListOf<Int>() }
+
+    val score = memoryQuestions.zip(participantAnswers).count { (question, answer) ->
+        question.correctZone == answer
+    }
+    val accuracy = if (memoryQuestions.isNotEmpty()) {
+        (score * 100) / memoryQuestions.size
+    } else {
+        0
+    }
+    val averageQuestionnaireScore = if (questionnaireResponses.isNotEmpty()) {
+        questionnaireResponses.average()
+    } else {
+        0.0
+    }
 
     when (currentScreen) {
         Screen.HOME -> HomeScreen(
@@ -109,31 +130,34 @@ fun AppContent(modifier: Modifier = Modifier) {
 
         Screen.PAGINATION -> PaginationScreen(
             modifier = modifier,
-            articles = articles,
+            records = records,
             onBackClick = { currentScreen = Screen.HOME },
             onFinishBrowsing = {
                 browsingDurationSeconds = ((System.currentTimeMillis() - browsingStartTime) / 1000).coerceAtLeast(0L)
                 participantAnswers.clear()
-                currentScreen = Screen.MEMORY_TEST
+                questionnaireResponses.clear()
+                currentScreen = Screen.LOCATION_RECALL_TEST
             }
         )
 
         Screen.INFINITE_SCROLL -> InfiniteScrollScreen(
             modifier = modifier,
-            articles = articles,
+            records = records,
             onBackClick = { currentScreen = Screen.HOME },
             onFinishBrowsing = {
                 browsingDurationSeconds = ((System.currentTimeMillis() - browsingStartTime) / 1000).coerceAtLeast(0L)
                 participantAnswers.clear()
-                currentScreen = Screen.MEMORY_TEST
+                questionnaireResponses.clear()
+                currentScreen = Screen.LOCATION_RECALL_TEST
             }
         )
 
-        Screen.MEMORY_TEST -> SpatialMemoryTestScreen(
+        Screen.LOCATION_RECALL_TEST -> LocationRecallTestScreen(
             modifier = modifier,
             questions = memoryQuestions,
             onBackClick = {
                 participantAnswers.clear()
+                questionnaireResponses.clear()
                 currentScreen = Screen.HOME
             },
             onAnswerSelected = { zone ->
@@ -147,11 +171,44 @@ fun AppContent(modifier: Modifier = Modifier) {
         Screen.RESULT -> ResultScreen(
             modifier = modifier,
             interfaceMode = selectedMode,
-            questions = memoryQuestions,
-            answers = participantAnswers.toList(),
+            score = score,
+            totalQuestions = memoryQuestions.size,
+            accuracy = accuracy,
             browsingDurationSeconds = browsingDurationSeconds,
+            onContinueToQuestionnaire = { currentScreen = Screen.QUESTIONNAIRE },
             onBackToHome = {
                 participantAnswers.clear()
+                questionnaireResponses.clear()
+                currentScreen = Screen.HOME
+            }
+        )
+
+        Screen.QUESTIONNAIRE -> QuestionnaireScreen(
+            modifier = modifier,
+            interfaceMode = selectedMode,
+            onBackToHome = {
+                participantAnswers.clear()
+                questionnaireResponses.clear()
+                currentScreen = Screen.HOME
+            },
+            onSubmit = { responses ->
+                questionnaireResponses.clear()
+                questionnaireResponses.addAll(responses)
+                currentScreen = Screen.FINAL_SUMMARY
+            }
+        )
+
+        Screen.FINAL_SUMMARY -> FinalSummaryScreen(
+            modifier = modifier,
+            interfaceMode = selectedMode,
+            score = score,
+            totalQuestions = memoryQuestions.size,
+            accuracy = accuracy,
+            browsingDurationSeconds = browsingDurationSeconds,
+            averageQuestionnaireScore = averageQuestionnaireScore,
+            onBackToHome = {
+                participantAnswers.clear()
+                questionnaireResponses.clear()
                 currentScreen = Screen.HOME
             }
         )
@@ -182,7 +239,7 @@ fun HomeScreen(
             modifier = Modifier.padding(top = 8.dp)
         )
         Text(
-            text = "Explore the article list as you would in a mobile digital library. After browsing, you will answer several follow-up questions.",
+            text = "Explore the digital library collection as you would on a mobile device. After browsing, you will answer several follow-up questions.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 12.dp, bottom = 24.dp)
         )
@@ -205,24 +262,29 @@ fun HomeScreen(
         ) {
             Text("Infinite Scroll Interface")
         }
+
+        Text(
+            text = "Researcher note: Use Group A for Pagination first and Group B for Infinite Scroll first.",
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(top = 16.dp)
+        )
     }
 }
 
-// Research condition 1: page-based navigation with page cues.
 @Composable
 fun PaginationScreen(
     modifier: Modifier = Modifier,
-    articles: List<Article>,
+    records: List<LibraryRecord>,
     onBackClick: () -> Unit,
     onFinishBrowsing: () -> Unit
 ) {
     val pageSize = 10
-    val totalPages = (articles.size + pageSize - 1) / pageSize
+    val totalPages = (records.size + pageSize - 1) / pageSize
     var currentPage by remember { mutableStateOf(0) }
 
     val startIndex = currentPage * pageSize
-    val endIndex = minOf(startIndex + pageSize, articles.size)
-    val currentPageItems = articles.subList(startIndex, endIndex)
+    val endIndex = minOf(startIndex + pageSize, records.size)
+    val currentPageItems = records.subList(startIndex, endIndex)
 
     Column(
         modifier = modifier
@@ -235,15 +297,12 @@ fun PaginationScreen(
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Task: Browse the article list and identify articles that seem relevant to mobile search, interface navigation, or spatial memory. When finished, tap Finish Browsing.",
+            text = "Task: Browse the collection and identify records that seem useful for a literature review about mobile digital library interfaces. When finished, tap Finish Browsing.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
         )
 
-        Button(
-            onClick = onBackClick,
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
+        Button(onClick = onBackClick, modifier = Modifier.padding(bottom = 8.dp)) {
             Text("Back")
         }
 
@@ -253,8 +312,8 @@ fun PaginationScreen(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(currentPageItems) { article ->
-                ArticleCard(article = article)
+            items(currentPageItems) { record ->
+                LibraryRecordCard(record)
             }
         }
 
@@ -272,10 +331,7 @@ fun PaginationScreen(
                 Text("Previous")
             }
 
-            Text(
-                text = "Page ${currentPage + 1} of $totalPages",
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Text(text = "Page ${currentPage + 1} of $totalPages", style = MaterialTheme.typography.bodyMedium)
 
             Button(
                 onClick = { if (currentPage < totalPages - 1) currentPage++ },
@@ -296,11 +352,10 @@ fun PaginationScreen(
     }
 }
 
-// Research condition 2: continuous scrolling without page cues.
 @Composable
 fun InfiniteScrollScreen(
     modifier: Modifier = Modifier,
-    articles: List<Article>,
+    records: List<LibraryRecord>,
     onBackClick: () -> Unit,
     onFinishBrowsing: () -> Unit
 ) {
@@ -315,15 +370,12 @@ fun InfiniteScrollScreen(
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Task: Browse the article list and identify articles that seem relevant to mobile search, interface navigation, or spatial memory. When finished, tap Finish Browsing.",
+            text = "Task: Browse the collection and identify records that seem useful for a literature review about mobile digital library interfaces. When finished, tap Finish Browsing.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
         )
 
-        Button(
-            onClick = onBackClick,
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
+        Button(onClick = onBackClick, modifier = Modifier.padding(bottom = 8.dp)) {
             Text("Back")
         }
 
@@ -333,8 +385,8 @@ fun InfiniteScrollScreen(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(articles) { article ->
-                ArticleCard(article = article)
+            items(records) { record ->
+                LibraryRecordCard(record)
             }
         }
 
@@ -349,9 +401,9 @@ fun InfiniteScrollScreen(
     }
 }
 
-// Post-browsing task to measure spatial memory using equivalent location zones.
+// Location recall test uses fixed target indexes to balance top/middle/bottom zones.
 @Composable
-fun SpatialMemoryTestScreen(
+fun LocationRecallTestScreen(
     modifier: Modifier = Modifier,
     questions: List<MemoryQuestion>,
     onBackClick: () -> Unit,
@@ -367,7 +419,7 @@ fun SpatialMemoryTestScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "Spatial Memory Test",
+            text = "Location Recall Test",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -383,12 +435,12 @@ fun SpatialMemoryTestScreen(
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = currentQuestion.article.title,
+                    text = currentQuestion.record.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "Where was this article located?",
+                    text = "Where was this record located?",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -401,9 +453,7 @@ fun SpatialMemoryTestScreen(
                 if (currentQuestionIndex < questions.lastIndex) currentQuestionIndex++
             },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Top / Page 1 / Items 1-10")
-        }
+        ) { Text("Top / Page 1 / Items 1-10") }
 
         Button(
             onClick = {
@@ -411,9 +461,7 @@ fun SpatialMemoryTestScreen(
                 if (currentQuestionIndex < questions.lastIndex) currentQuestionIndex++
             },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Middle / Page 2 / Items 11-20")
-        }
+        ) { Text("Middle / Page 2 / Items 11-20") }
 
         Button(
             onClick = {
@@ -421,25 +469,21 @@ fun SpatialMemoryTestScreen(
                 if (currentQuestionIndex < questions.lastIndex) currentQuestionIndex++
             },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Bottom / Page 3 / Items 21-30")
-        }
+        ) { Text("Bottom / Page 3 / Items 21-30") }
     }
 }
 
-// Displays experiment outcome using the selected interface condition.
 @Composable
 fun ResultScreen(
     modifier: Modifier = Modifier,
     interfaceMode: InterfaceMode,
-    questions: List<MemoryQuestion>,
-    answers: List<LocationZone>,
+    score: Int,
+    totalQuestions: Int,
+    accuracy: Int,
     browsingDurationSeconds: Long,
+    onContinueToQuestionnaire: () -> Unit,
     onBackToHome: () -> Unit
 ) {
-    val score = questions.zip(answers).count { (question, answer) -> question.correctZone == answer }
-    val accuracy = if (questions.isNotEmpty()) (score * 100) / questions.size else 0
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -447,26 +491,14 @@ fun ResultScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "Experiment Result",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
+        Text(text = "Result", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Text(
             text = "Interface mode: ${if (interfaceMode == InterfaceMode.PAGINATION) "Pagination" else "Infinite Scroll"}",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(top = 12.dp)
         )
-        Text(
-            text = "Score: $score / ${questions.size}",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        Text(
-            text = "Accuracy: $accuracy%",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 4.dp)
-        )
+        Text(text = "Score: $score / $totalQuestions", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 8.dp))
+        Text(text = "Accuracy: $accuracy%", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
         Text(
             text = "Browsing duration: $browsingDurationSeconds seconds",
             style = MaterialTheme.typography.bodyLarge,
@@ -477,56 +509,132 @@ fun ResultScreen(
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp)
         )
-        Text(
-            text = "Higher score indicates better recall of article location.",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 12.dp)
-        )
 
-        Button(
-            onClick = onBackToHome,
-            modifier = Modifier.padding(top = 20.dp)
-        ) {
+        Button(onClick = onContinueToQuestionnaire, modifier = Modifier.padding(top = 20.dp)) {
+            Text("Continue to Questionnaire")
+        }
+        Button(onClick = onBackToHome, modifier = Modifier.padding(top = 8.dp)) {
             Text("Back to Home")
         }
     }
 }
 
-fun getLocationZone(index: Int): LocationZone {
-    return when (index) {
-        in 0..9 -> LocationZone.TOP
-        in 10..19 -> LocationZone.MIDDLE
-        else -> LocationZone.BOTTOM
-    }
-}
-
-fun createMemoryQuestions(articles: List<Article>): List<MemoryQuestion> {
-    val targetIndexes = listOf(3, 8, 12, 17, 22, 27)
-    return targetIndexes.map { index ->
-        MemoryQuestion(
-            article = articles[index],
-            correctZone = getLocationZone(index)
-        )
-    }
-}
-
-// Shared card design used by BOTH interfaces to preserve experimental validity.
+// Five post-task Likert questions (1 to 5) for subjective interface evaluation.
 @Composable
-fun ArticleCard(article: Article) {
+fun QuestionnaireScreen(
+    modifier: Modifier = Modifier,
+    interfaceMode: InterfaceMode,
+    onSubmit: (List<Int>) -> Unit,
+    onBackToHome: () -> Unit
+) {
+    val questions = listOf(
+        "I could easily remember where records were located.",
+        "The interface helped me revisit previously seen records.",
+        "The interface was easy to navigate.",
+        "The interface felt efficient for browsing the collection.",
+        "I would prefer this interface for mobile digital library use."
+    )
+    var currentQuestionIndex by remember { mutableStateOf(0) }
+    val responses = remember { mutableStateListOf<Int>() }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(text = "Post-Task Questionnaire", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(
+            text = "Interface mode: ${if (interfaceMode == InterfaceMode.PAGINATION) "Pagination" else "Infinite Scroll"}",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(text = "Scale: 1 = Strongly disagree, 5 = Strongly agree", style = MaterialTheme.typography.bodySmall)
+        Text(text = "Question ${currentQuestionIndex + 1} of ${questions.size}", style = MaterialTheme.typography.bodyMedium)
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = questions[currentQuestionIndex],
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            (1..5).forEach { value ->
+                Button(onClick = {
+                    responses.add(value)
+                    if (responses.size == questions.size) {
+                        onSubmit(responses.toList())
+                    } else {
+                        currentQuestionIndex++
+                    }
+                }) {
+                    Text(value.toString())
+                }
+            }
+        }
+
+        Button(onClick = onBackToHome) {
+            Text("Back to Home")
+        }
+    }
+}
+
+@Composable
+fun FinalSummaryScreen(
+    modifier: Modifier = Modifier,
+    interfaceMode: InterfaceMode,
+    score: Int,
+    totalQuestions: Int,
+    accuracy: Int,
+    browsingDurationSeconds: Long,
+    averageQuestionnaireScore: Double,
+    onBackToHome: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Final Summary", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(text = "Participant ID: Record manually", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 12.dp))
+        Text(
+            text = "Interface mode: ${if (interfaceMode == InterfaceMode.PAGINATION) "Pagination" else "Infinite Scroll"}",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        Text(text = "Location recall score: $score / $totalQuestions", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
+        Text(text = "Accuracy: $accuracy%", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
+        Text(text = "Browsing duration: $browsingDurationSeconds seconds", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
+        Text(
+            text = "Average questionnaire score: ${"%.2f".format(averageQuestionnaireScore)}",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        Text(
+            text = "Record all values in the experiment spreadsheet.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 10.dp)
+        )
+
+        Button(onClick = onBackToHome, modifier = Modifier.padding(top = 20.dp)) {
+            Text("Back to Home")
+        }
+    }
+}
+
+// Same card UI for both conditions to preserve interface-comparison validity.
+@Composable
+fun LibraryRecordCard(record: LibraryRecord) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(14.dp)) {
+            Text(text = record.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = "${record.creators} (${record.year})", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+            Text(text = record.type, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 4.dp))
             Text(
-                text = article.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "${article.authors} (${article.year})",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-            Text(
-                text = article.abstract,
+                text = record.description,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
@@ -536,39 +644,59 @@ fun ArticleCard(article: Article) {
     }
 }
 
-// Fixed 30-article dataset (identical for pagination and infinite scroll).
-fun createArticleDataset(): List<Article> {
+// Location zones: indexes 0-9 TOP, 10-19 MIDDLE, 20-29 BOTTOM.
+fun getLocationZone(index: Int): LocationZone {
+    return when (index) {
+        in 0..9 -> LocationZone.TOP
+        in 10..19 -> LocationZone.MIDDLE
+        else -> LocationZone.BOTTOM
+    }
+}
+
+fun createMemoryQuestions(records: List<LibraryRecord>): List<MemoryQuestion> {
+    val targetIndexes = listOf(3, 8, 12, 17, 22, 27)
+    return targetIndexes.map { index ->
+        MemoryQuestion(
+            record = records[index],
+            correctZone = getLocationZone(index)
+        )
+    }
+}
+
+fun createLibraryRecordDataset(): List<LibraryRecord> {
     return listOf(
-        Article("Mobile Search Behavior in Academic Libraries", "A. Rahman, L. Chen", 2016, "This study investigates how students perform quick searches on mobile library platforms and identifies common navigation patterns during short research sessions."),
-        Article("Designing Readable Metadata Cards", "J. Patel, M. Gomez", 2017, "The paper evaluates card-based metadata presentation and its impact on scan speed, helping interface designers reduce cognitive load in dense result lists."),
-        Article("Touch Interaction and Result Selection", "S. Ibrahim, R. Holt", 2018, "Researchers compare tap accuracy and dwell time across different list densities to understand how touch ergonomics affect article selection on smartphones."),
-        Article("User Recall Across Scrolling Lists", "N. Park, T. Aziz", 2019, "An experiment explores how continuous scrolling influences memory of item position, showing trade-offs between speed and precise spatial recall."),
-        Article("Pagination Cues in Digital Catalogs", "H. Singh, E. Ward", 2020, "This article reports that numbered page boundaries can provide structural cues that improve user orientation in large collections."),
-        Article("Abstract Length and Comprehension", "F. Silva, P. Noor", 2015, "The authors test short versus long abstract snippets and conclude that concise previews improve triage decisions without reducing topic understanding."),
-        Article("Information Scent in Library Apps", "C. Bennett, Y. Tan", 2021, "The work analyzes titles, author strings, and snippets as information scent signals that guide users toward relevant academic material."),
-        Article("Comparing Feed and Page Navigation", "R. Donovan, K. Lee", 2022, "A controlled usability trial compares feed-style browsing with page-by-page navigation and measures effort, confidence, and task completion time."),
-        Article("Cognitive Mapping on Small Screens", "M. Alvi, D. Brooks", 2018, "This study links interface landmarks to stronger cognitive maps, suggesting repeated visual anchors help users remember where items were found."),
-        Article("Digital Library UX for Novice Researchers", "B. Kumar, S. Hart", 2019, "The paper identifies common novice mistakes and recommends straightforward interface patterns to support first-time literature exploration."),
-        Article("Scrolling Fatigue in Long Lists", "L. Freeman, Q. Zhou", 2020, "Researchers document fatigue effects in lengthy mobile lists and discuss breakpoints that can reduce repetitive gesture burden."),
-        Article("Evaluating Backtracking Strategies", "D. Okafor, I. Mills", 2017, "The authors measure how quickly users relocate previously viewed records, emphasizing the role of interface structure in backtracking tasks."),
-        Article("Visual Density and Decision Quality", "G. Rossi, V. Anand", 2016, "An experiment on visual density finds moderate spacing improves decision quality by balancing information richness and readability."),
-        Article("Perceived Control in Navigation Systems", "K. Hassan, J. Moore", 2023, "This article explores user perception of control in different navigation models and correlates it with satisfaction during exploratory search."),
-        Article("Temporal Patterns of Mobile Reading", "P. Evans, R. Choi", 2015, "The study tracks when and how long users read abstracts on phones, revealing frequent micro-sessions between other daily activities."),
-        Article("Signal Detection in Result Ranking", "A. Diaz, N. Ibrahim", 2018, "This paper examines how ranking quality interacts with snippet clarity, influencing whether users continue browsing deeper into results."),
-        Article("Interface Consistency in Experiments", "T. Mensah, O. Green", 2021, "Researchers argue that strict visual consistency is essential when comparing navigation paradigms to avoid confounding variables."),
-        Article("Microinteractions in Research Apps", "E. Flores, H. Kim", 2019, "The article studies subtle motion and feedback cues and how they influence confidence when users save, open, or revisit records."),
-        Article("Screen Position Memory Effects", "Y. Nakamura, A. Bello", 2022, "A lab experiment evaluates how accurately participants remember vertical item positions after completing relevance judgment tasks."),
-        Article("Mobile Bibliographic Discovery Models", "R. Ahmed, C. Lim", 2017, "The authors propose a lightweight discovery model tailored for handheld devices where rapid filtering and minimal context switching are critical."),
-        Article("Adaptive Snippet Presentation", "M. Rivera, J. Stone", 2020, "This study presents adaptive snippet lengths based on user behavior and shows potential gains in engagement and click precision."),
-        Article("Human Factors in Academic Search", "S. Li, F. Martin", 2016, "The paper synthesizes human-factor constraints in mobile academic search, including attention limits, thumb reach, and interruption frequency."),
-        Article("Re-finding Literature on Smartphones", "W. Grant, N. Aziz", 2021, "The research focuses on re-finding previously encountered papers and compares cue effectiveness across titles, authors, and positional memory."),
-        Article("Navigation Landmarks for Long Lists", "D. Pereira, M. Yu", 2019, "Authors evaluate explicit landmarks in long lists and report improvements in orientation and reduced disorientation events."),
-        Article("Empirical Methods for UX Comparison", "I. Novak, B. Trent", 2018, "This methodological paper outlines balanced protocols for comparing interface variants while maintaining reliable behavioral measurements."),
-        Article("Scrolling Momentum and Attention", "H. Costa, L. Wang", 2023, "The study investigates momentum scrolling and notes that higher speed can reduce attention to mid-list items during exploratory browsing."),
-        Article("Page Boundaries as Memory Anchors", "P. Osei, T. Morgan", 2024, "Findings suggest page boundaries may act as memory anchors that help users reconstruct where relevant records appeared."),
-        Article("Minimalist Controls in Library UI", "A. Yilmaz, R. Dean", 2017, "The paper discusses minimalist control sets and their influence on learnability for users unfamiliar with advanced search systems."),
-        Article("Task Success in Mobile Retrieval", "C. Johnson, E. Park", 2022, "A comparative study links clearer result previews and stable layout structure to higher task success in mobile retrieval tasks."),
-        Article("Spatial Memory Metrics in HCI", "N. Idris, V. Clarke", 2025, "This article reviews practical metrics for spatial memory experiments and recommends combining recall accuracy with completion efficiency."),
+        LibraryRecord("Mobile Search Formulation in Academic Library Apps", "A. Rahman, L. Chen", 2019, "Journal Article", "Examines query reformulation behavior when students search scholarly collections on smartphones."),
+        LibraryRecord("Design Patterns for Metadata Cards in Library Interfaces", "J. Patel, M. Gomez", 2021, "Journal Article", "Evaluates compact card layouts for displaying title, creator, and abstract snippets on small screens."),
+        LibraryRecord("Comparing Vertical Navigation Strategies in Mobile Repositories", "S. Ibrahim, R. Holt", 2020, "Conference Paper", "Reports usability outcomes when users browse long result lists with different navigation controls."),
+        LibraryRecord("Cognitive Offloading During Mobile Literature Scanning", "N. Park, T. Aziz", 2022, "Journal Article", "Analyzes how interface structure affects user reliance on positional cues while scanning records."),
+        LibraryRecord("Practical Guide to Mobile Digital Library UX", "B. Kumar", 2018, "E-book", "Provides applied guidelines for creating readable and navigable mobile academic library experiences."),
+        LibraryRecord("Interface Consistency in Experimental HCI Studies", "T. Mensah, O. Green", 2021, "Journal Article", "Discusses methods to keep non-target variables constant when comparing interface paradigms."),
+        LibraryRecord("Proceedings of Mobile Information Retrieval 2020", "L. Freeman, D. Okafor (Eds.)", 2020, "E-book", "Collected papers on mobile retrieval models, browsing interaction, and relevance judgment behavior."),
+        LibraryRecord("Re-finding Academic Records in App-Based Catalogs", "W. Grant, N. Aziz", 2023, "Conference Paper", "Presents findings on how users return to previously seen records in mobile discovery sessions."),
+        LibraryRecord("Spatial Orientation in Continuous Result Feeds", "M. Alvi", 2024, "Thesis", "Doctoral work studying how continuous feeds influence orientation and position recall in academic browsing."),
+        LibraryRecord("Mobile Library Access and Equity: Annual Evidence Review", "Center for Digital Scholarship", 2022, "Research Report", "Summarizes access barriers and interface factors affecting scholarly discovery on mobile devices."),
+
+        LibraryRecord("Attention Patterns in Mid-List Academic Records", "H. Costa, L. Wang", 2023, "Journal Article", "Investigates attention drop-off as users browse deeper into mobile scholarly lists."),
+        LibraryRecord("Evaluating Page Cues for Orientation in Digital Collections", "H. Singh, E. Ward", 2020, "Journal Article", "Tests whether page boundaries improve orientation in large-scale mobile collections."),
+        LibraryRecord("Navigation Recovery After Interrupted Mobile Browsing", "E. Flores, H. Kim", 2021, "Conference Paper", "Explores how users regain context after interruptions during literature exploration."),
+        LibraryRecord("Mobile Reading Session Length and Record Selection", "P. Evans, R. Choi", 2019, "Journal Article", "Quantifies short reading bursts and links them to record triage decisions."),
+        LibraryRecord("Academic Discovery Systems for Handheld Devices", "R. Ahmed, C. Lim", 2017, "E-book", "Introduces lightweight discovery workflows optimized for handheld research activity."),
+        LibraryRecord("Perceived Control in Scroll and Page Interfaces", "K. Hassan, J. Moore", 2024, "Journal Article", "Measures perceived navigational control across feed-like and paginated interfaces."),
+        LibraryRecord("International Symposium on Library Interaction Design 2022", "I. Novak, B. Trent (Eds.)", 2022, "E-book", "Conference proceedings covering interaction design methods for mobile library platforms."),
+        LibraryRecord("Backtracking Efficiency in Mobile Academic Search", "D. Pereira, M. Yu", 2021, "Conference Paper", "Compares user efficiency when revisiting previously viewed records across interface styles."),
+        LibraryRecord("Positional Memory in Smartphone Research Tasks", "Y. Nakamura", 2023, "Thesis", "Masters thesis assessing recall of record location after relevance judgment tasks."),
+        LibraryRecord("Institutional Report on Student Mobile Library Behavior", "University Learning Analytics Unit", 2024, "Research Report", "Institutional analysis of browsing behavior, query habits, and navigation friction in mobile library use."),
+
+        LibraryRecord("Metadata Readability and Search Confidence", "G. Rossi, V. Anand", 2018, "Journal Article", "Examines how text density and spacing shape confidence in selecting relevant records."),
+        LibraryRecord("Ranking Signals and Mobile Literature Discovery", "A. Diaz, N. Ibrahim", 2020, "Journal Article", "Analyzes how ranking quality interacts with snippets in mobile discovery tasks."),
+        LibraryRecord("Workshop on Spatial Memory in Digital Navigation", "P. Osei, T. Morgan", 2025, "Conference Paper", "Reports pilot studies on memory anchors during app-based academic browsing."),
+        LibraryRecord("Mobile Knowledge Organization for Academic Libraries", "A. Yilmaz", 2019, "E-book", "Covers organizational schemes for presenting scholarly records in constrained interfaces."),
+        LibraryRecord("Task Success Predictors in Mobile Retrieval", "C. Johnson, E. Park", 2022, "Journal Article", "Identifies interface and content factors associated with successful mobile retrieval outcomes."),
+        LibraryRecord("Proceedings of Applied Information Navigation 2021", "S. Li, F. Martin (Eds.)", 2021, "E-book", "Collection of empirical papers on information navigation, wayfinding, and browsing behavior."),
+        LibraryRecord("Understanding Scroll Momentum and Record Skipping", "M. Rivera, J. Stone", 2024, "Journal Article", "Shows links between fast scrolling momentum and skipped records in academic collections."),
+        LibraryRecord("Comparative Metrics for Interface Memory Experiments", "N. Idris", 2025, "Thesis", "Proposes measurement frameworks for recall accuracy and browsing efficiency in interface studies."),
+        LibraryRecord("National Survey of Mobile Academic Search Practices", "Digital Library Research Consortium", 2023, "Research Report", "Presents multi-campus survey findings on mobile academic search and navigation preferences."),
+        LibraryRecord("Search Persistence in Long Mobile Result Sets", "F. Silva, P. Noor", 2018, "Conference Paper", "Analyzes persistence patterns as users continue browsing deeper into mobile result sets.")
     )
 }
 
