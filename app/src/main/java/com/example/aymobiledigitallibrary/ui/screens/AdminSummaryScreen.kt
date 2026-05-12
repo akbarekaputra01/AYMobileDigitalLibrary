@@ -12,19 +12,30 @@ import com.example.aymobiledigitallibrary.util.CsvExportBuilder
 import com.example.aymobiledigitallibrary.util.JsonExportBuilder
 
 @Composable
-fun AdminSummaryScreen(sessionId: String, mode: BrowsingMode, resultStorage: ResultStorage, participantInfo: ParticipantInfo?, onReset: () -> Unit = {}) {
+fun AdminSummaryScreen(
+    sessionId: String,
+    mode: BrowsingMode,
+    resultStorage: ResultStorage,
+    participantInfo: ParticipantInfo?,
+    onReset: () -> Unit = {}
+) {
     val counts = resultStorage.getCounts()
     val result = resultStorage.buildExperimentResult(sessionId, participantInfo, mode)
     val summary = result.summaryMetrics
 
     ScreenContainer(scrollable = true) {
-        Text("Admin Summary", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = "Admin Summary",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
         Text("Participant ID: $sessionId")
         Text("Browsing Mode: ${mode.name}")
         Text("Global recall completed count: ${counts.globalRecallCount}")
         Text("Local context recall completed count: ${counts.localContextRecallCount}")
         Text("Re-finding completed count: ${counts.refindingCount}")
         Text("Questionnaire completed count: ${counts.questionnaireCount}")
+
         summary?.let {
             Text("Global location accuracy: ${"%.2f".format(it.globalLocationAccuracy)}")
             Text("Mean global absolute error: ${"%.2f".format(it.meanGlobalAbsoluteError)}")
@@ -32,8 +43,24 @@ fun AdminSummaryScreen(sessionId: String, mode: BrowsingMode, resultStorage: Res
             Text("Re-finding success rate: ${"%.2f".format(it.refindingSuccessRate)}")
             Text("Mean re-finding time (ms): ${"%.0f".format(it.meanRefindingTimeMillis)}")
         }
-        PrimaryButton("Export CSV") { CsvExportBuilder.build(result) }
-        PrimaryButton("Export JSON") { JsonExportBuilder.build(result) }
-        PrimaryButton("Reset Data", onReset)
+
+        PrimaryButton(
+            text = "Export CSV",
+            onClick = {
+                CsvExportBuilder.build(result)
+            }
+        )
+
+        PrimaryButton(
+            text = "Export JSON",
+            onClick = {
+                JsonExportBuilder.build(result)
+            }
+        )
+
+        PrimaryButton(
+            text = "Reset Data",
+            onClick = onReset
+        )
     }
 }
