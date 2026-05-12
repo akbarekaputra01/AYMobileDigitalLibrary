@@ -1,0 +1,2 @@
+package com.example.aymobiledigitallibrary.model
+enum class ExperimentPhase{BROWSING,SHORT_ACTIVITY,GLOBAL_LOCATION,LOCAL_REGION,RELATIVE_ORDER,REFINDING,WORKLOAD,USABILITY,SUMMARY}

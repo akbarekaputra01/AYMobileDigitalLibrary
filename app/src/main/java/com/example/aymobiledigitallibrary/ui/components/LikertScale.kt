@@ -1,0 +1,3 @@
+package com.example.aymobiledigitallibrary.ui.components
+import androidx.compose.foundation.layout.*;import androidx.compose.material3.*;import androidx.compose.runtime.Composable;import androidx.compose.ui.Alignment;import androidx.compose.ui.Modifier;import androidx.compose.ui.unit.dp
+@Composable fun LikertScale(value:Int,onValue:(Int)->Unit,start:String,end:String){Row(verticalAlignment=Alignment.CenterVertically){Text(start,modifier=Modifier.width(52.dp),style=MaterialTheme.typography.bodyMedium);(1..5).forEach{FilterChip(selected=value==it,onClick={onValue(it)},label={Text("$it")},modifier=Modifier.padding(horizontal=2.dp))};Text(end,style=MaterialTheme.typography.bodyMedium)}}
