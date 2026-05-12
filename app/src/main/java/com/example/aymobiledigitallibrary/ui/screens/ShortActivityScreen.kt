@@ -6,113 +6,38 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.aymobiledigitallibrary.model.DistractorAnswer
-import com.example.aymobiledigitallibrary.ui.components.ChoiceButton
-import com.example.aymobiledigitallibrary.ui.components.PrimaryButton
-import com.example.aymobiledigitallibrary.ui.components.QuestionCard
-import com.example.aymobiledigitallibrary.ui.components.ScreenContainer
-import com.example.aymobiledigitallibrary.ui.components.TaskProgressHeader
+import com.example.aymobiledigitallibrary.model.DistractorResult
+import com.example.aymobiledigitallibrary.ui.components.*
+import kotlin.random.Random
 
 @Composable
-fun ShortActivityScreen(
-    numbers: List<Int>,
-    onDone: (List<DistractorAnswer>) -> Unit
-) {
-    var currentIndex by remember { mutableIntStateOf(0) }
-    var selectedAnswer by remember { mutableStateOf<String?>(null) }
-    var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    val answers = remember { mutableStateListOf<DistractorAnswer>() }
-
-    val currentNumber = numbers[currentIndex]
+fun ShortActivityScreen(participantId: String, onDone: (DistractorResult) -> Unit) {
+    val numbers = remember { List(10) { Random.nextInt(10, 99) } }
+    var index by remember { mutableIntStateOf(0) }
+    var correct by remember { mutableIntStateOf(0) }
+    val startTime = remember { System.currentTimeMillis() }
 
     ScreenContainer {
-        TaskProgressHeader(
-            title = "Short Activity",
-            step = currentIndex + 1,
-            total = numbers.size
-        )
-
+        TaskProgressHeader("Short Activity", index + 1, 10)
         QuestionCard {
-            Text(
-                text = "Complete this brief activity before continuing.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Is the following number even or odd?",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Text(
-                text = currentNumber.toString(),
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                ChoiceButton(
-                    text = "Even",
-                    selected = selectedAnswer == "Even",
-                    onClick = {
-                        selectedAnswer = "Even"
-                    }
-                )
-
-                ChoiceButton(
-                    text = "Odd",
-                    selected = selectedAnswer == "Odd",
-                    onClick = {
-                        selectedAnswer = "Odd"
-                    }
-                )
+            Text("Complete this short activity before continuing.")
+            Spacer(Modifier.height(12.dp))
+            Text(numbers[index].toString(), style = MaterialTheme.typography.headlineLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ChoiceButton("Odd", false) { if (numbers[index] % 2 != 0) correct++; next(index, startTime, participantId, correct, onDone) { index = it } }
+                ChoiceButton("Even", false) { if (numbers[index] % 2 == 0) correct++; next(index, startTime, participantId, correct, onDone) { index = it } }
             }
-
-            PrimaryButton(
-                text = "Continue",
-                enabled = selectedAnswer != null,
-                onClick = {
-                    val correctAnswer = if (currentNumber % 2 == 0) {
-                        "Even"
-                    } else {
-                        "Odd"
-                    }
-
-                    val responseTime = System.currentTimeMillis() - startTime
-                    val selected = selectedAnswer ?: return@PrimaryButton
-
-                    answers += DistractorAnswer(
-                        questionIndex = currentIndex + 1,
-                        number = currentNumber,
-                        correctAnswer = correctAnswer,
-                        participantAnswer = selected,
-                        responseTimeMs = responseTime,
-                        isCorrect = correctAnswer == selected
-                    )
-
-                    if (currentIndex == numbers.lastIndex) {
-                        onDone(answers)
-                    } else {
-                        currentIndex++
-                        selectedAnswer = null
-                        startTime = System.currentTimeMillis()
-                    }
-                }
-            )
         }
     }
+}
+
+private fun next(index: Int, startTime: Long, participantId: String, correct: Int, onDone: (DistractorResult) -> Unit, setIndex: (Int) -> Unit) {
+    if (index == 9) {
+        onDone(DistractorResult(participantId, startTime, System.currentTimeMillis(), 10, correct))
+    } else setIndex(index + 1)
 }
