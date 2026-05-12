@@ -1,4 +1,58 @@
 package com.example.aymobiledigitallibrary.ui.screens
-import androidx.compose.foundation.text.selection.SelectionContainer;import androidx.compose.material3.*;import androidx.compose.runtime.Composable;import com.example.aymobiledigitallibrary.model.*;import com.example.aymobiledigitallibrary.ui.components.*;import com.example.aymobiledigitallibrary.util.*
-@Composable fun AdminSummaryScreen(sessionId:String,mode:BrowsingMode,result:ExperimentResult){val g=ScoringUtils.accuracy(result.recallAnswers,TaskType.GLOBAL_LOCATION);val l=ScoringUtils.accuracy(result.recallAnswers,TaskType.LOCAL_REGION);val r=ScoringUtils.accuracy(result.recallAnswers,TaskType.RELATIVE_ORDER);val rr=ScoringUtils.refindingSuccessRate(result.refindingResults);ScreenContainer{SectionTitle("Session Summary");ResultMetricRow("Session ID",sessionId);ResultMetricRow("Mode",mode.name);ResultMetricRow("Browsing duration","${result.browsingDurationMs} ms");ResultMetricRow("Global location accuracy","${"%.2f".format(g)}");ResultMetricRow("Mean global absolute error","${"%.2f".format(ScoringUtils.meanGlobalAbsoluteError(result.recallAnswers))}");ResultMetricRow("Local region accuracy","${"%.2f".format(l)}");ResultMetricRow("Relative order accuracy","${"%.2f".format(r)}");ResultMetricRow("Re-finding success rate","${"%.2f".format(rr)}");ResultMetricRow("Mean re-finding time","${"%.0f".format(ScoringUtils.meanRefindingTime(result.refindingResults))} ms");ResultMetricRow("Wrong click count",ScoringUtils.totalWrongClicks(result.refindingResults).toString());ResultMetricRow("Mean workload", "${"%.2f".format(ScoringUtils.meanQuestionnaire(result.questionnaireResponses,TaskType.WORKLOAD))}");ResultMetricRow("Mean usability", "${"%.2f".format(ScoringUtils.meanQuestionnaire(result.questionnaireResponses,TaskType.USABILITY))}");Text("CSV Preview");SelectionContainer{Text(CsvExportBuilder.build(sessionId,mode.name,result))};Text("JSON Preview");SelectionContainer{Text(JsonExportBuilder.build(sessionId,mode.name,result))}}
+
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.example.aymobiledigitallibrary.data.LibraryRepository
+import com.example.aymobiledigitallibrary.model.*
+import com.example.aymobiledigitallibrary.ui.components.*
+import com.example.aymobiledigitallibrary.util.*
+
+@Composable
+fun AdminSummaryScreen(sessionId:String,mode:BrowsingMode,result:ExperimentResult,onReset:()->Unit = {}) {
+    val metrics = SummaryMetrics(
+        globalLocationAccuracy = ScoringUtils.accuracy(result.recallAnswers, TaskType.GLOBAL_LOCATION),
+        meanGlobalAbsoluteError = ScoringUtils.meanGlobalAbsoluteError(result.recallAnswers),
+        localRegionAccuracy = ScoringUtils.accuracy(result.recallAnswers, TaskType.LOCAL_REGION),
+        relativeOrderAccuracy = ScoringUtils.accuracy(result.recallAnswers, TaskType.RELATIVE_ORDER),
+        refindingSuccessRate = ScoringUtils.refindingSuccessRate(result.refindingResults),
+        meanRefindingTime = ScoringUtils.meanRefindingTime(result.refindingResults),
+        totalWrongClicks = ScoringUtils.totalWrongClicks(result.refindingResults),
+        totalScrollCount = ScoringUtils.totalScrollCount(result.refindingResults),
+        totalPageClicks = ScoringUtils.totalPageClicks(result.refindingResults),
+        meanWorkloadScore = ScoringUtils.meanQuestionnaire(result.questionnaireResponses, TaskType.WORKLOAD),
+        meanUsabilityScore = ScoringUtils.meanQuestionnaire(result.questionnaireResponses, TaskType.USABILITY)
+    )
+    val normalized = result.copy(summaryMetrics = metrics)
+    val csv = CsvExportBuilder.build(normalized)
+    val json = JsonExportBuilder.build(normalized)
+    val context = LocalContext.current
+    var confirm by remember { mutableStateOf(false) }
+
+    if (confirm) AlertDialog(onDismissRequest = { confirm = false }, confirmButton = { TextButton({ confirm=false; onReset() }) { Text("Confirm") } }, dismissButton = { TextButton({ confirm=false }) { Text("Cancel") } }, title={Text("Start new session?")}, text={Text("Start a new session and clear current local results?")})
+
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        SectionTitle("Session Summary")
+        OutlinedCard { Column(Modifier.padding(14.dp)) { ResultMetricRow("Session ID", sessionId); ResultMetricRow("Browsing Mode", mode.name); ResultMetricRow("Library Items", LibraryRepository.items.size.toString()); ResultMetricRow("Browsing Duration", "${normalized.browsingDurationMs} ms") } }
+        OutlinedCard { Column(Modifier.padding(14.dp)) { Text("Recall Metrics"); ResultMetricRow("Global Accuracy", "%.2f".format(metrics.globalLocationAccuracy)); ResultMetricRow("Mean Global Error", "%.2f".format(metrics.meanGlobalAbsoluteError)); ResultMetricRow("Local Accuracy", "%.2f".format(metrics.localRegionAccuracy)); ResultMetricRow("Relative Order", "%.2f".format(metrics.relativeOrderAccuracy)) } }
+        OutlinedCard { Column(Modifier.padding(14.dp)) { Text("Re-finding Metrics"); ResultMetricRow("Success Rate", "%.2f".format(metrics.refindingSuccessRate)); ResultMetricRow("Mean Time", "%.0f ms".format(metrics.meanRefindingTime)); ResultMetricRow("Wrong Clicks", metrics.totalWrongClicks.toString()); ResultMetricRow("Scroll Count", metrics.totalScrollCount.toString()); ResultMetricRow("Page Clicks", metrics.totalPageClicks.toString()) } }
+        OutlinedCard { Column(Modifier.padding(14.dp)) { Text("Questionnaire Metrics"); ResultMetricRow("Mean Workload", "%.2f".format(metrics.meanWorkloadScore)); ResultMetricRow("Mean Usability", "%.2f".format(metrics.meanUsabilityScore)) } }
+        Text("CSV Preview"); SelectionContainer { Text(csv) }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { SecondaryButton("Copy CSV", { copy(context, "csv", csv) }); SecondaryButton("Share CSV", { share(context, "text/csv", csv) }) }
+        Text("JSON Preview"); SelectionContainer { Text(json) }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { SecondaryButton("Copy JSON", { copy(context, "json", json) }); SecondaryButton("Share JSON", { share(context, "application/json", json) }) }
+        PrimaryButton("Start New Session", { confirm = true })
+    }
 }
+private fun copy(context: Context, label: String, value: String){ (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(label, value)) }
+private fun share(context: Context, mime: String, value: String){ context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply { type = mime; putExtra(Intent.EXTRA_TEXT, value) }, "Share")) }
