@@ -1,63 +1,49 @@
 package com.example.aymobiledigitallibrary.ui.screens
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState  // Add this line
-import androidx.compose.material3.*
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.aymobiledigitallibrary.data.LibraryItem
-import com.example.aymobiledigitallibrary.model.*
+import com.example.aymobiledigitallibrary.model.BrowsingMode
+import com.example.aymobiledigitallibrary.model.RefindingResult
 import com.example.aymobiledigitallibrary.ui.components.*
-import com.example.aymobiledigitallibrary.util.ExperimentConfig
+import com.example.aymobiledigitallibrary.util.ScoringUtils
 
 @Composable
-fun RefindingTaskScreen(mode: BrowsingMode, allItems: List<LibraryItem>, targets: List<LibraryItem>, onDone: (List<RefindingResult>) -> Unit) {
-    BackHandler(enabled = true) {}
+fun RefindingTaskScreen(participantId: String, mode: BrowsingMode, allItems: List<LibraryItem>, onDone: (List<RefindingResult>) -> Unit) {
+    val targets = remember { listOf(2, 9, 16, 22, 28).map { allItems[it] } }
     var trial by remember { mutableIntStateOf(0) }
     var wrong by remember { mutableIntStateOf(0) }
+    var nextClicks by remember { mutableIntStateOf(0) }
+    var prevClicks by remember { mutableIntStateOf(0) }
     var page by remember { mutableIntStateOf(1) }
-    var clicks by remember { mutableIntStateOf(0) }
-    var start by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    var foundDialog by remember { mutableStateOf(false) }
-    val listState = rememberLazyListState()
+    val start = remember { mutableLongStateOf(System.currentTimeMillis()) }
     val out = remember { mutableStateListOf<RefindingResult>() }
+    val listState = rememberLazyListState()
     val target = targets[trial]
+    val shown = if (mode == BrowsingMode.PAGE_VIEW) allItems.filter { it.paginationPage == page } else allItems
 
-    if (foundDialog) AlertDialog(onDismissRequest = {}, confirmButton = { TextButton({
-        foundDialog = false
-        if (trial == targets.lastIndex) onDone(out) else { trial++; wrong = 0; clicks = 0; page = 1; start = System.currentTimeMillis() }
-    }) { Text("Continue") } }, title = { Text("Material found.") }, text = { Text("Continue to the next material.") })
-
-    Column(Modifier.fillMaxSize()) {
-        OutlinedCard(Modifier.fillMaxWidth().padding(16.dp)) {
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Find This Material", style = MaterialTheme.typography.headlineSmall)
-                Text("Find the material shown below.")
-                Text("Target ${trial + 1} / ${targets.size}", style = MaterialTheme.typography.labelSmall)
-                CompactLibraryItemCard(target) {}
-            }
+    ScreenContainer {
+        Text("Find This Material")
+        Text("Find the material shown below.")
+        CompactLibraryItemCard(target) {}
+        LazyColumn(state = listState, modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(shown) { item -> CompactLibraryItemCard(item) {
+                val success = ScoringUtils.calculateRefindingSuccess(target.id, item.id)
+                if (!success) return@CompactLibraryItemCard wrong++
+                out += RefindingResult(participantId, mode, target.id, item.id, true, start.longValue, System.currentTimeMillis(), System.currentTimeMillis() - start.longValue, wrong, nextClicks, prevClicks, if (mode == BrowsingMode.PAGE_VIEW) page else null, if (mode == BrowsingMode.CONTINUOUS_LIST) null else null)
+                if (trial == targets.lastIndex) onDone(out) else { trial++; wrong = 0; nextClicks = 0; prevClicks = 0; page = 1; start.longValue = System.currentTimeMillis() }
+            } }
         }
-        val shown = if (mode == BrowsingMode.PAGE_VIEW) allItems.filter { it.paginationPage == page } else allItems
-        LazyColumn(state = listState, modifier = Modifier.weight(1f).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(shown) { item ->
-                CompactLibraryItemCard(item) {
-                    if (item.id == target.id) {
-                        out += RefindingResult(target.id, true, System.currentTimeMillis() - start, wrong, scrollCount = listState.firstVisibleItemIndex, maxScrollDepth = (listState.firstVisibleItemIndex.toFloat() / ExperimentConfig.TOTAL_LIBRARY_ITEMS), pageClickCount = clicks, finalPage = page)
-                        foundDialog = true
-                    } else wrong++
-                }
-            }
+        if (mode == BrowsingMode.PAGE_VIEW) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            SecondaryButton("Previous", { page--; prevClicks++ }, page > 1)
+            SecondaryButton("Next", { page++; nextClicks++ }, page < 5)
         }
-        if (mode == BrowsingMode.PAGE_VIEW) {
-            Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                SecondaryButton("Previous", { page--; clicks++ }, page > 1)
-                Text("Page $page of ${ExperimentConfig.TOTAL_PAGES}")
-                SecondaryButton("Next", { page++; clicks++ }, page < ExperimentConfig.TOTAL_PAGES)
-            }
-        }
+        if (wrong > 0) Text("That is not the material. Keep looking.")
     }
 }

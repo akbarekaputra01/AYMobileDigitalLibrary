@@ -14,7 +14,6 @@ data class SummaryMetrics(
     val meanUsabilityScore: Double = 0.0
 )
 
-data class RefindingResult(val targetItemId:String,val success:Boolean,val timeToFindMs:Long,val wrongClickCount:Int,val scrollCount:Int=0,val maxScrollDepth:Float=0f,val pageClickCount:Int=0,val finalPage:Int=1,val timestamp:Long=System.currentTimeMillis())
 data class DistractorAnswer(val questionIndex:Int,val number:Int,val correctAnswer:String,val participantAnswer:String,val responseTimeMs:Long,val isCorrect:Boolean,val timestamp:Long=System.currentTimeMillis())
 
 data class ExperimentResult(

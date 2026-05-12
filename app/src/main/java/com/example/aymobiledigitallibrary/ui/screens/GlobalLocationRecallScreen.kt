@@ -1,3 +1,27 @@
 package com.example.aymobiledigitallibrary.ui.screens
-import androidx.compose.material3.*;import androidx.compose.runtime.*;import com.example.aymobiledigitallibrary.data.LibraryItem;import com.example.aymobiledigitallibrary.model.*;import com.example.aymobiledigitallibrary.ui.components.*
-@Composable fun GlobalLocationRecallScreen(mode:BrowsingMode,items:List<LibraryItem>,onDone:(List<RecallAnswer>)->Unit){var i by remember{ mutableIntStateOf(0)};var start by remember{ mutableLongStateOf(System.currentTimeMillis())};val answers=remember{ mutableStateListOf<RecallAnswer>()}; val item=items[i];val options=if(mode==BrowsingMode.PAGE_VIEW) listOf("Page 1","Page 2","Page 3","Page 4","Page 5") else listOf("0–20%","21–40%","41–60%","61–80%","81–100%");ScreenContainer{TaskProgressHeader("Material Review",i+1,items.size);QuestionCard{Text("Where did this material appear?");Text(item.title);Text("${item.authors} • ${item.year}");options.forEachIndexed{idx,o->ChoiceButton(o,false){val c=if(mode==BrowsingMode.PAGE_VIEW) "Page ${item.paginationPage}" else listOf("0–20%","21–40%","41–60%","61–80%","81–100%")[item.scrollZoneIndex-1]; val sIdx=idx+1; val cIdx=if(mode==BrowsingMode.PAGE_VIEW)item.paginationPage else item.scrollZoneIndex; answers+=RecallAnswer(TaskType.GLOBAL_LOCATION,item.id,c,o,kotlin.math.abs(sIdx-cIdx),c==o,System.currentTimeMillis()-start); if(i==items.lastIndex) onDone(answers) else {i++;start=System.currentTimeMillis()}}}}}}
+
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import com.example.aymobiledigitallibrary.data.LibraryRepository
+import com.example.aymobiledigitallibrary.model.*
+import com.example.aymobiledigitallibrary.ui.components.*
+import com.example.aymobiledigitallibrary.util.ScoringUtils
+
+@Composable
+fun GlobalLocationRecallScreen(participantId: String, mode: BrowsingMode, onDone: (List<GlobalRecallResult>) -> Unit) {
+    val targets = remember { listOf(0, 3, 7, 11, 15, 19, 23, 28).map { LibraryRepository.items[it] } }
+    var idx by remember { mutableIntStateOf(0) }
+    var selected by remember { mutableIntStateOf(-1) }
+    var start by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    val out = remember { mutableStateListOf<GlobalRecallResult>() }
+    val options = if (mode == BrowsingMode.PAGE_VIEW) listOf("Page 1", "Page 2", "Page 3", "Page 4", "Page 5") else listOf("Early List", "Upper-Middle List", "Middle List", "Lower-Middle List", "Late List")
+    val item = targets[idx]
+    ScreenContainer { TaskProgressHeader("Where Did You See This?", idx + 1, targets.size); CompactLibraryItemCard(item) {}; Text("Where did this material appear in the library?");
+        options.forEachIndexed { i, s -> SelectableCard(s, selected == i + 1, helperText = null) { selected = i + 1 } }
+        PrimaryButton("Continue", enabled = selected != -1) {
+            val correct = if (mode == BrowsingMode.PAGE_VIEW) item.paginationPage else item.scrollZoneIndex
+            out += GlobalRecallResult(participantId, mode, item.id, correct, selected, ScoringUtils.calculateAccuracy(correct, selected), ScoringUtils.calculateAbsoluteError(correct, selected), System.currentTimeMillis() - start)
+            if (idx == targets.lastIndex) onDone(out) else { idx++; selected = -1; start = System.currentTimeMillis() }
+        }
+    }
+}
