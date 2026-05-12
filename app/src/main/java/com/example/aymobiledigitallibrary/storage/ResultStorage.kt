@@ -3,6 +3,7 @@ package com.example.aymobiledigitallibrary.storage
 import android.content.Context
 import com.example.aymobiledigitallibrary.model.*
 import com.example.aymobiledigitallibrary.util.JsonExportBuilder
+import org.json.JSONObject
 
 class ResultStorage(context: Context) {
     private val p = context.getSharedPreferences("results", Context.MODE_PRIVATE)
@@ -31,6 +32,8 @@ class ResultStorage(context: Context) {
     }
 
     fun getSnapshotJson(): String? = p.getString("snapshot_json", null)
+
+    fun getSnapshotSummary(): JSONObject? = getSnapshotJson()?.let { JSONObject(it) }
 
     fun clearAll() {
         events.clear(); distractors.clear(); recalls.clear(); refinding.clear(); questionnaires.clear()
