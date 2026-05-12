@@ -1,0 +1,27 @@
+package com.example.aymobiledigitallibrary.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.aymobiledigitallibrary.data.LibraryRepository
+import com.example.aymobiledigitallibrary.model.BrowsingMode
+import com.example.aymobiledigitallibrary.model.ParticipantInfo
+import com.example.aymobiledigitallibrary.ui.components.*
+import com.example.aymobiledigitallibrary.util.ParticipantIdGenerator
+import kotlin.random.Random
+
+@Composable fun WelcomeScreen(onStart:()->Unit){ScreenContainer{Spacer(Modifier.height(24.dp));Card{Column(Modifier.padding(24.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(16.dp)){Icon(Icons.Outlined.MenuBook,null,modifier=Modifier.size(64.dp));Text("Mobile Digital Library",style=MaterialTheme.typography.headlineLarge);Text("Explore academic materials on your phone");Text("Browse a collection of academic materials and complete a few short activities related to what you viewed.");AssistChip(onClick={},enabled=false,label={Text("Estimated time: 10–15 mins")});PrimaryButton("Start",onStart)} }; Spacer(Modifier.weight(1f));Text("Study: Comparative Analysis of Mobile Interfaces",modifier=Modifier.align(Alignment.CenterHorizontally))}}
+
+@Composable fun SessionSetupScreen(initialId:String,onContinue:(ParticipantInfo)->Unit){var age by remember{ mutableStateOf("")}; var gender by remember{ mutableStateOf("")}; var s1 by remember{ mutableIntStateOf(0)}; var s2 by remember{ mutableIntStateOf(0)}; var s3 by remember{ mutableIntStateOf(0)}; var s4 by remember{ mutableIntStateOf(0)}; var s5 by remember{ mutableIntStateOf(0)}; val ok=age.isNotBlank()&&gender.isNotBlank()&&listOf(s1,s2,s3,s4,s5).all{it in 1..5}
+    ScreenContainer{SectionTitle("Session Setup","Please provide some basic information before beginning the reading session.");OutlinedCard{Column(Modifier.padding(16.dp)){Text("Anonymous Session ID",style=MaterialTheme.typography.labelSmall);Text(initialId);Text("This ID is automatically generated and does not contain your personal identity.",style=MaterialTheme.typography.bodyMedium)}};OutlinedTextField(age,{age=it},label={Text("Age")},modifier=Modifier.fillMaxWidth());Text("Gender");Row{listOf("Female","Male","Other").forEach{FilterChip(selected=gender==it,onClick={gender=it},label={Text(it)},modifier=Modifier.padding(end=8.dp))}};Text("Familiarity with mobile scrolling");LikertScale(s1,{s1=it},"Not at all","Extremely");Text("Familiarity with page-based reading");LikertScale(s2,{s2=it},"Not at all","Extremely");Text("Frequency of using reading apps");LikertScale(s3,{s3=it},"Rarely","Daily");Text("Frequency of using digital library apps");LikertScale(s4,{s4=it},"Rarely","Daily");Text("Self-rated spatial ability");LikertScale(s5,{s5=it},"Poor","Excellent");PrimaryButton("Continue",{onContinue(ParticipantInfo(initialId,age,gender,s1,s2,s3,s4,s5))},ok)}
+}
+@Composable fun BrowsingModeSetupScreen(onApply:(BrowsingMode)->Unit){var selected by remember{ mutableStateOf("CONT")}; ScreenContainer{SectionTitle("Browsing Mode Setup","Select how materials will be displayed in this session.");SelectableCard("Continuous List","Browse all materials in one continuous vertical list.",selected=="CONT"){selected="CONT"};SelectableCard("Page View","Browse materials across separate pages.",selected=="PAGE"){selected="PAGE"};SelectableCard("Random Assignment","Let the system choose a browsing mode.",selected=="RAND"){selected="RAND"};PrimaryButton("Apply & Start"){val m=when(selected){"CONT"->BrowsingMode.CONTINUOUS_LIST;"PAGE"->BrowsingMode.PAGE_VIEW;else->if(Random.nextBoolean()) BrowsingMode.CONTINUOUS_LIST else BrowsingMode.PAGE_VIEW};onApply(m)}}}
+@Composable fun LibraryBrowsingScreen(mode:BrowsingMode,onFinish:()->Unit){val items=LibraryRepository.items; var page by remember{ mutableIntStateOf(1)}; val listState=rememberLazyListState(); ScreenContainer{SectionTitle("Library","Browse the materials naturally.");ModeLabel(if(mode==BrowsingMode.CONTINUOUS_LIST)"Continuous List" else "Page View"); if(mode==BrowsingMode.CONTINUOUS_LIST){val p=((listState.firstVisibleItemIndex+1)/30f).coerceIn(0f,1f);LinearProgressIndicator(progress={p},modifier=Modifier.fillMaxWidth());LazyColumn(state=listState,verticalArrangement=Arrangement.spacedBy(12.dp),modifier=Modifier.weight(1f)){items(items){LibraryItemCard(it,{})}}} else {Text("Page $page of 5");LazyColumn(verticalArrangement=Arrangement.spacedBy(12.dp),modifier=Modifier.weight(1f)){items(items.filter{it.paginationPage==page}){LibraryItemCard(it,{})}};Row(horizontalArrangement=Arrangement.SpaceBetween,modifier=Modifier.fillMaxWidth()){SecondaryButton("Previous",{page--},enabled=page>1);SecondaryButton("Next",{page++},enabled=page<5)}};PrimaryButton("Finish Browsing",onFinish)} }
+@Composable fun AdminPlaceholderScreen(sessionId:String?,mode:BrowsingMode?){ScreenContainer{SectionTitle("Admin Placeholder");Text("Session ID: ${sessionId ?: "Not available"}");Text("Selected mode: ${mode?.name ?: "Not selected"}");Text("Library items: ${LibraryRepository.items.size}");Text("Experiment tasks, logging, and export will be implemented in later phases.")}}
