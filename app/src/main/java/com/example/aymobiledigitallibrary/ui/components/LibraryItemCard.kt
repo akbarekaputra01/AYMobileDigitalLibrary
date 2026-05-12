@@ -1,3 +1,131 @@
 package com.example.aymobiledigitallibrary.ui.components
-import androidx.compose.foundation.*;import androidx.compose.foundation.layout.*;import androidx.compose.foundation.lazy.LazyRow;import androidx.compose.foundation.lazy.items;import androidx.compose.foundation.shape.RoundedCornerShape;import androidx.compose.material.icons.Icons;import androidx.compose.material.icons.outlined.Description;import androidx.compose.material3.*;import androidx.compose.runtime.Composable;import androidx.compose.ui.Alignment;import androidx.compose.ui.Modifier;import androidx.compose.ui.text.font.FontWeight;import androidx.compose.ui.unit.dp;import com.example.aymobiledigitallibrary.data.LibraryItem
-@Composable fun LibraryItemCard(item:LibraryItem,onClick:()->Unit){OutlinedCard(Modifier.fillMaxWidth().clickable{onClick()},border=BorderStroke(1.dp,MaterialTheme.colorScheme.outline),elevation=CardDefaults.outlinedCardElevation(2.dp)){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Row(horizontalArrangement=Arrangement.spacedBy(12.dp)){Box(Modifier.size(50.dp).background(MaterialTheme.colorScheme.surfaceVariant,RoundedCornerShape(8.dp)),contentAlignment=Alignment.Center){Icon(Icons.Outlined.Description,null)};Column{AssistChip(onClick={},enabled=false,label={Text(item.category)});Text(item.title,fontWeight=FontWeight.SemiBold);Text(item.authors,color=MaterialTheme.colorScheme.onSurfaceVariant)}};Text("${item.year} • ${item.documentType} • ${item.citationCount} citations",style=MaterialTheme.typography.bodyMedium);Text(item.abstractPreview,style=MaterialTheme.typography.bodyMedium);LazyRow(horizontalArrangement=Arrangement.spacedBy(6.dp)){items(item.tags){SuggestionChip(onClick={},enabled=false,label={Text(it)})}}}}}
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.example.aymobiledigitallibrary.data.LibraryItem
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LibraryItemCard(
+    item: LibraryItem,
+    onClick: () -> Unit
+) {
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline
+        ),
+        elevation = CardDefaults.outlinedCardElevation(
+            defaultElevation = 2.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "DOC",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    AssistChip(
+                        onClick = {},
+                        enabled = false,
+                        label = {
+                            Text(text = item.category)
+                        }
+                    )
+
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Text(
+                        text = item.authors,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Text(
+                text = "${item.year} • ${item.documentType} • ${item.citationCount} citations",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Text(
+                text = item.abstractPreview,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                items(item.tags) { tag ->
+                    SuggestionChip(
+                        onClick = {},
+                        enabled = false,
+                        label = {
+                            Text(text = tag)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}

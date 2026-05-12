@@ -24,9 +24,13 @@ fun QuestionnaireScreen(title: String, items: List<String>, type: TaskType, onDo
             OutlinedCard { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text(q, style = MaterialTheme.typography.headlineSmall); LikertScale(responses[idx] ?: 0, { responses[idx] = it }, "1", "5") } }
         }
         val done = responses.size == items.size && !submitting
-        PrimaryButton(if (type == TaskType.USABILITY) "Submit Feedback" else "Continue", enabled = done) {
-            submitting = true
-            onDone(items.mapIndexed { i, t -> QuestionnaireResponse(type, t, responses[i] ?: 0) })
-        }
+        PrimaryButton(
+            text = if (type == TaskType.USABILITY) "Submit Feedback" else "Continue", // Use your actual parameter name for the string here
+            enabled = done,
+            onClick = {
+                submitting = true
+                onDone(items.mapIndexed { i, t -> QuestionnaireResponse(type, t, responses[i] ?: 0) })
+            }
+        )
     }
 }
