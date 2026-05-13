@@ -9,17 +9,15 @@ object CsvExportBuilder {
         appendLine("SESSION_INFO,browsingMode,${r.browsingMode}")
         appendLine("PARTICIPANT_INFO,age,${r.participantInfo?.age ?: ""}")
         appendLine("PARTICIPANT_INFO,gender,${r.participantInfo?.gender ?: ""}")
-        r.distractorResult?.let { appendLine("DISTRACTOR_RESULT,completedCount,${it.completedCount}") }
-        r.globalRecallResults.forEach { appendLine("GLOBAL_RECALL,${it.targetItemId},${it.selectedIndex}|${it.correctIndex}|${it.accuracy}|${it.absoluteError}") }
-        r.localContextRecallResults.forEach { appendLine("LOCAL_CONTEXT_RECALL,${it.targetItemId},${it.selectedPlacement}|${it.correctPlacement}|${it.accuracy}") }
-        r.refindingResults.forEach { appendLine("REFINDING_RESULTS,${it.targetItemId},${it.timeToFindMillis}|${it.wrongClickCount}|${it.nextClickCount}|${it.previousClickCount}|${it.finalPage}|${it.finalScrollZone}") }
+        appendLine("PARTICIPANT_INFO,scrollingFamiliarity,${r.participantInfo?.scrollingFamiliarity ?: ""}")
+        appendLine("PARTICIPANT_INFO,paginationFamiliarity,${r.participantInfo?.paginationFamiliarity ?: ""}")
+        appendLine("PARTICIPANT_INFO,readingAppFrequency,${r.participantInfo?.readingAppFrequency ?: ""}")
+        appendLine("PARTICIPANT_INFO,digitalLibraryFrequency,${r.participantInfo?.digitalLibraryFrequency ?: ""}")
+        appendLine("PARTICIPANT_INFO,spatialAbility,${r.participantInfo?.spatialAbility ?: ""}")
+        r.globalRecallResults.forEach { appendLine("GLOBAL_RECALL,${it.targetItemId},${it.correctIndex}|${it.selectedIndex}|${it.accuracy}|${it.absoluteError}|${it.responseTimeMillis}") }
+        r.localContextRecallResults.forEach { appendLine("LOCAL_CONTEXT_RECALL,${it.targetItemId},${it.correctNeighborItemIdsCsv}|${it.selectedNeighborItemIdsCsv}|${it.accuracy}|${it.responseTimeMillis}") }
+        r.refindingResults.forEach { appendLine("REFINDING_RESULTS,${it.targetItemId},${it.selectedItemId}|${it.success}|${it.startTimeMillis}|${it.endTimeMillis}|${it.timeToFindMillis}|${it.wrongClickCount}|${it.nextClickCount}|${it.previousClickCount}|${it.finalPage}|${it.finalScrollZone}") }
         r.questionnaireResponses.forEach { appendLine("QUESTIONNAIRE,${it.itemText.take(24)},${it.rating}") }
-        r.summaryMetrics?.let {
-            appendLine("SUMMARY_METRICS,globalLocationAccuracy,${it.globalLocationAccuracy}")
-            appendLine("SUMMARY_METRICS,meanGlobalAbsoluteError,${it.meanGlobalAbsoluteError}")
-            appendLine("SUMMARY_METRICS,localContextAccuracy,${it.localContextAccuracy}")
-            appendLine("SUMMARY_METRICS,refindingSuccessRate,${it.refindingSuccessRate}")
-            appendLine("SUMMARY_METRICS,meanRefindingTimeMillis,${it.meanRefindingTimeMillis}")
-        }
+        r.interactionEvents.forEach { appendLine("INTERACTION_LOG,${it.eventType},${it.phase}|${it.timestampMillis}|${it.itemId ?: ""}|${it.value ?: ""}") }
     }
 }

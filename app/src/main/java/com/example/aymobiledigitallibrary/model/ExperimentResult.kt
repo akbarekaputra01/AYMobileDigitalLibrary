@@ -22,5 +22,6 @@ data class ExperimentResult(
     val localContextRecallResults: List<LocalContextRecallResult> = emptyList(),
     val refindingResults: List<RefindingResult> = emptyList(),
     val questionnaireResponses: List<QuestionnaireResponse> = emptyList(),
+    val interactionEvents: List<InteractionEvent> = emptyList(),
     val summaryMetrics: SummaryMetrics? = null
 )

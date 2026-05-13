@@ -82,6 +82,8 @@ fun LibraryItemCard(
                         }
                     )
 
+                    Text(text = "Material ${item.id.removePrefix("L")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
                     Text(
                         text = item.title,
                         style = MaterialTheme.typography.titleMedium,

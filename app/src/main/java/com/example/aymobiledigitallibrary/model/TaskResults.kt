@@ -23,8 +23,8 @@ data class LocalContextRecallResult(
     val participantId: String,
     val browsingMode: BrowsingMode,
     val targetItemId: String,
-    val correctPlacement: LocalRegion,
-    val selectedPlacement: LocalRegion,
+    val correctNeighborItemIdsCsv: String,
+    val selectedNeighborItemIdsCsv: String,
     val accuracy: Int,
     val responseTimeMillis: Long
 )
