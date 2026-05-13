@@ -1,6 +1,6 @@
 package com.example.aymobiledigitallibrary.util
 
-import com.example.aymobiledigitallibrary.model.*
+import com.example.aymobiledigitallibrary.model.ExperimentResult
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -9,23 +9,23 @@ object JsonExportBuilder {
         val root = JSONObject()
         root.put("participantId", result.participantId)
         root.put("browsingMode", result.browsingMode?.name)
-        root.put("sessionStartTime", result.sessionStartTime)
-        root.put("browsingStartTime", result.browsingStartTime)
-        root.put("browsingEndTime", result.browsingEndTime)
-        root.put("browsingDurationMs", result.browsingDurationMs)
         root.put("participantInfo", JSONObject().apply {
             result.participantInfo?.let {
-                put("age", it.age); put("gender", it.gender); put("scrollingFamiliarity", it.scrollingFamiliarity)
-                put("paginationFamiliarity", it.paginationFamiliarity); put("readingAppFrequency", it.readingAppFrequency)
-                put("digitalLibraryFrequency", it.digitalLibraryFrequency); put("spatialAbility", it.spatialAbility)
+                put("age", it.age)
+                put("gender", it.gender)
+                put("scrollingFamiliarity", it.scrollingFamiliarity)
+                put("paginationFamiliarity", it.paginationFamiliarity)
+                put("readingAppFrequency", it.readingAppFrequency)
+                put("digitalLibraryFrequency", it.digitalLibraryFrequency)
+                put("spatialAbility", it.spatialAbility)
             }
         })
-        root.put("interactionEvents", JSONArray(result.interactionEvents.map { JSONObject().put("eventType", it.eventType).put("phase", it.phase.name).put("itemId", it.itemId).put("value", it.value).put("timestamp", it.timestamp) }))
-        root.put("distractorAnswers", JSONArray(result.distractorAnswers.map { JSONObject().put("questionIndex", it.questionIndex).put("number", it.number).put("participantAnswer", it.participantAnswer).put("responseTimeMs", it.responseTimeMs) }))
-        root.put("recallAnswers", JSONArray(result.recallAnswers.map { JSONObject().put("taskType", it.taskType.name).put("itemId", it.itemId).put("selectedAnswer", it.selectedAnswer).put("isCorrect", it.isCorrect).put("absoluteError", it.absoluteError).put("responseTimeMs", it.responseTimeMs) }))
-        root.put("refindingResults", JSONArray(result.refindingResults.map { JSONObject().put("targetItemId", it.targetItemId).put("success", it.success).put("timeToFindMs", it.timeToFindMs).put("wrongClickCount", it.wrongClickCount).put("scrollCount", it.scrollCount).put("pageClickCount", it.pageClickCount).put("finalPage", it.finalPage) }))
+        result.distractorResult?.let { root.put("distractorResult", JSONObject().put("completedCount", it.completedCount).put("correctCount", it.correctCount)) }
+        root.put("globalRecallResults", JSONArray(result.globalRecallResults.map { JSONObject().put("targetItemId", it.targetItemId).put("correctIndex", it.correctIndex).put("selectedIndex", it.selectedIndex).put("accuracy", it.accuracy).put("absoluteError", it.absoluteError) }))
+        root.put("localContextRecallResults", JSONArray(result.localContextRecallResults.map { JSONObject().put("targetItemId", it.targetItemId).put("correctPlacement", it.correctPlacement.name).put("selectedPlacement", it.selectedPlacement.name).put("accuracy", it.accuracy) }))
+        root.put("refindingResults", JSONArray(result.refindingResults.map { JSONObject().put("targetItemId", it.targetItemId).put("selectedItemId", it.selectedItemId).put("success", it.success).put("timeToFindMillis", it.timeToFindMillis).put("wrongClickCount", it.wrongClickCount).put("nextClickCount", it.nextClickCount).put("previousClickCount", it.previousClickCount).put("finalPage", it.finalPage).put("finalScrollZone", it.finalScrollZone) }))
         root.put("questionnaireResponses", JSONArray(result.questionnaireResponses.map { JSONObject().put("taskType", it.taskType.name).put("itemText", it.itemText).put("rating", it.rating) }))
-        result.summaryMetrics?.let { root.put("summaryMetrics", JSONObject().put("globalLocationAccuracy", it.globalLocationAccuracy).put("meanGlobalAbsoluteError", it.meanGlobalAbsoluteError).put("localRegionAccuracy", it.localRegionAccuracy).put("relativeOrderAccuracy", it.relativeOrderAccuracy).put("refindingSuccessRate", it.refindingSuccessRate).put("meanRefindingTime", it.meanRefindingTime).put("totalWrongClicks", it.totalWrongClicks).put("totalScrollCount", it.totalScrollCount).put("totalPageClicks", it.totalPageClicks).put("meanWorkloadScore", it.meanWorkloadScore).put("meanUsabilityScore", it.meanUsabilityScore)) }
+        result.summaryMetrics?.let { root.put("summaryMetrics", JSONObject().put("globalLocationAccuracy", it.globalLocationAccuracy).put("meanGlobalAbsoluteError", it.meanGlobalAbsoluteError).put("localContextAccuracy", it.localContextAccuracy).put("refindingSuccessRate", it.refindingSuccessRate).put("meanRefindingTimeMillis", it.meanRefindingTimeMillis).put("totalWrongClicks", it.totalWrongClicks).put("totalNextClicks", it.totalNextClicks).put("totalPreviousClicks", it.totalPreviousClicks).put("meanExperienceScore", it.meanExperienceScore)) }
         return root.toString(2)
     }
 }

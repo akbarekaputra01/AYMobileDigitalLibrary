@@ -3,31 +3,24 @@ package com.example.aymobiledigitallibrary.model
 data class SummaryMetrics(
     val globalLocationAccuracy: Double = 0.0,
     val meanGlobalAbsoluteError: Double = 0.0,
-    val localRegionAccuracy: Double = 0.0,
-    val relativeOrderAccuracy: Double = 0.0,
+    val localContextAccuracy: Double = 0.0,
     val refindingSuccessRate: Double = 0.0,
-    val meanRefindingTime: Double = 0.0,
+    val meanRefindingTimeMillis: Double = 0.0,
     val totalWrongClicks: Int = 0,
-    val totalScrollCount: Int = 0,
-    val totalPageClicks: Int = 0,
-    val meanWorkloadScore: Double = 0.0,
-    val meanUsabilityScore: Double = 0.0
+    val totalNextClicks: Int = 0,
+    val totalPreviousClicks: Int = 0,
+    val meanExperienceScore: Double = 0.0
 )
-
-data class DistractorAnswer(val questionIndex:Int,val number:Int,val correctAnswer:String,val participantAnswer:String,val responseTimeMs:Long,val isCorrect:Boolean,val timestamp:Long=System.currentTimeMillis())
 
 data class ExperimentResult(
     val participantId: String = "",
     val participantInfo: ParticipantInfo? = null,
     val browsingMode: BrowsingMode? = null,
     val sessionStartTime: Long = 0L,
-    val browsingStartTime: Long = 0L,
-    val browsingEndTime: Long = 0L,
-    val browsingDurationMs: Long = 0,
-    val interactionEvents:List<InteractionEvent> = emptyList(),
-    val distractorAnswers:List<DistractorAnswer> = emptyList(),
-    val recallAnswers:List<RecallAnswer> = emptyList(),
-    val refindingResults:List<RefindingResult> = emptyList(),
-    val questionnaireResponses:List<QuestionnaireResponse> = emptyList(),
+    val distractorResult: DistractorResult? = null,
+    val globalRecallResults: List<GlobalRecallResult> = emptyList(),
+    val localContextRecallResults: List<LocalContextRecallResult> = emptyList(),
+    val refindingResults: List<RefindingResult> = emptyList(),
+    val questionnaireResponses: List<QuestionnaireResponse> = emptyList(),
     val summaryMetrics: SummaryMetrics? = null
 )

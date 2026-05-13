@@ -28,8 +28,14 @@ fun AppNavigation(storage: SessionStorage, resultStorage: ResultStorage) {
         composable(Routes.SHORT_ACTIVITY) { ShortActivityScreen(pid) { resultStorage.saveDistractorResult(it); nav.navigate(Routes.GLOBAL_LOCATION_RECALL) } }
         composable(Routes.GLOBAL_LOCATION_RECALL) { GlobalLocationRecallScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST) { resultStorage.saveGlobalRecallResults(it); nav.navigate(Routes.LOCAL_CONTEXT_RECALL) } }
         composable(Routes.LOCAL_CONTEXT_RECALL) { LocalContextRecallScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST) { resultStorage.saveLocalContextRecallResults(it); nav.navigate(Routes.REFINDING_TASK) } }
-        composable(Routes.REFINDING_TASK) { RefindingTaskScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST, LibraryRepository.items) { resultStorage.saveRefindingResults(it); nav.navigate(Routes.COMPLETION) } }
-        composable(Routes.COMPLETION) { CompletionScreen { nav.navigate(Routes.ADMIN_SUMMARY) } }
-        composable(Routes.ADMIN_SUMMARY) { AdminSummaryScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST, resultStorage, onReset = { storage.clearAll(); resultStorage.clearAll(); pid = ParticipantIdGenerator.generate().also { storage.saveParticipantId(it) }; nav.navigate(Routes.WELCOME) }) }
+        composable(Routes.REFINDING_TASK) { RefindingTaskScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST, LibraryRepository.items) { resultStorage.saveRefindingResults(it); nav.navigate(Routes.QUESTIONNAIRE) } }
+        composable(Routes.QUESTIONNAIRE) {
+            QuestionnaireScreen(listOf("It was easy to complete the tasks.", "I felt confident finding materials.", "The browsing method felt natural.")) {
+                resultStorage.saveQuestionnaireResponses(it)
+                nav.navigate(Routes.THANK_YOU)
+            }
+        }
+        composable(Routes.THANK_YOU) { ThankYouScreen { nav.navigate(Routes.ADMIN_SUMMARY) } }
+        composable(Routes.ADMIN_SUMMARY) { AdminSummaryScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST, resultStorage, storage.getParticipantInfo(), onReset = { storage.clearAll(); resultStorage.clearAll(); pid = ParticipantIdGenerator.generate().also { storage.saveParticipantId(it) }; nav.navigate(Routes.WELCOME) }) }
     }
 }

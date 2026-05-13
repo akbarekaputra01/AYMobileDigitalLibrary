@@ -1,8 +1,6 @@
 package com.example.aymobiledigitallibrary.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -30,14 +28,8 @@ fun SessionSetupScreen(
             gender.isNotBlank() &&
             listOf(s1, s2, s3, s4, s5).all { it in 1..5 }
 
-    ScreenContainer {
-        // Added vertical scroll to ensure small screens can access all questions
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
+    ScreenContainer(scrollable = true) {
+        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
             SectionTitle("Session Setup")
 
             Text(
