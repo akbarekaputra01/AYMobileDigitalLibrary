@@ -9,6 +9,7 @@ object Routes {
     const val GLOBAL_LOCATION_RECALL = "global_location_recall"
     const val LOCAL_CONTEXT_RECALL = "local_context_recall"
     const val REFINDING_TASK = "refinding_task"
-    const val COMPLETION = "completion"
+    const val QUESTIONNAIRE = "questionnaire"
+    const val THANK_YOU = "thank_you"
     const val ADMIN_SUMMARY = "admin_summary"
 }
