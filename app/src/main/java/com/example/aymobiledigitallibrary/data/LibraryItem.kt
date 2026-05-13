@@ -1,7 +1,5 @@
 package com.example.aymobiledigitallibrary.data
 
-import com.example.aymobiledigitallibrary.model.LocalRegion
-
 data class LibraryItem(
     val id: String,
     val title: String,
@@ -13,6 +11,5 @@ data class LibraryItem(
     val abstractPreview: String,
     val tags: List<String>,
     val paginationPage: Int,
-    val scrollZoneIndex: Int,
-    val localRegion: LocalRegion
+    val scrollZoneIndex: Int
 )

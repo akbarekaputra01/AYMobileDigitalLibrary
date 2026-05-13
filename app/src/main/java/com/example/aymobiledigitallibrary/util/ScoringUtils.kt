@@ -1,21 +1,7 @@
 package com.example.aymobiledigitallibrary.util
 
-import com.example.aymobiledigitallibrary.model.LocalRegion
-
 object ScoringUtils {
-    fun calculateAccuracy(correctIndex: Int, selectedIndex: Int): Int {
-        return if (correctIndex == selectedIndex) 1 else 0
-    }
-
-    fun calculateAbsoluteError(correctIndex: Int, selectedIndex: Int): Int {
-        return kotlin.math.abs(correctIndex - selectedIndex)
-    }
-
-    fun calculateLocalContextAccuracy(correct: LocalRegion, selected: LocalRegion): Int {
-        return if (correct == selected) 1 else 0
-    }
-
-    fun calculateRefindingSuccess(targetItemId: String, selectedItemId: String?): Boolean {
-        return targetItemId == selectedItemId
-    }
+    fun calculateAccuracy(correct: Int, selected: Int): Int = if (correct == selected) 1 else 0
+    fun calculateAbsoluteError(correct: Int, selected: Int): Int = kotlin.math.abs(correct - selected)
+    fun calculateNeighborPairAccuracy(correctIds: List<String>, selectedIds: List<String>): Int = if (correctIds.toSet() == selectedIds.toSet()) 1 else 0
 }

@@ -1,7 +1,5 @@
 package com.example.aymobiledigitallibrary.data
 
-import com.example.aymobiledigitallibrary.model.LocalRegion
-
 object LibraryRepository {
     val items = listOf(
         // Page 1 / Zone 1
@@ -16,8 +14,7 @@ object LibraryRepository {
             "This chapter introduces basic concepts in data collection, analysis, and interpretation for modern research.",
             listOf("Data", "Analysis", "Research"),
             1,
-            1,
-            LocalRegion.TOP
+            1
         ),
         LibraryItem(
             "L02",
@@ -30,8 +27,7 @@ object LibraryRepository {
             "The article explores how students use mobile devices to access learning materials outside the classroom.",
             listOf("Learning", "Mobile", "Students"),
             1,
-            1,
-            LocalRegion.TOP
+            1
         ),
         LibraryItem(
             "L03",
@@ -44,8 +40,7 @@ object LibraryRepository {
             "This report examines air quality patterns in urban areas and discusses public health implications.",
             listOf("Environment", "Urban", "Health"),
             1,
-            1,
-            LocalRegion.MIDDLE
+            1
         ),
         LibraryItem(
             "L04",
@@ -58,8 +53,7 @@ object LibraryRepository {
             "The study investigates factors that influence the adoption of digital banking services among young adults.",
             listOf("Banking", "Digital", "Business"),
             1,
-            1,
-            LocalRegion.MIDDLE
+            1
         ),
         LibraryItem(
             "L05",
@@ -72,8 +66,7 @@ object LibraryRepository {
             "This chapter reviews essential nutrients and their role in maintaining everyday health.",
             listOf("Nutrition", "Health", "Food"),
             1,
-            1,
-            LocalRegion.BOTTOM
+            1
         ),
         LibraryItem(
             "L06",
@@ -86,8 +79,7 @@ object LibraryRepository {
             "The article presents key psychological concepts related to behavior, attention, and decision-making.",
             listOf("Psychology", "Behavior", "Mind"),
             1,
-            1,
-            LocalRegion.BOTTOM
+            1
         ),
 
         // Page 2 / Zone 2
@@ -102,8 +94,7 @@ object LibraryRepository {
             "This paper discusses solar, wind, and hybrid energy systems for sustainable infrastructure.",
             listOf("Energy", "Engineering", "Sustainability"),
             2,
-            2,
-            LocalRegion.TOP
+            2
         ),
         LibraryItem(
             "L08",
@@ -116,8 +107,7 @@ object LibraryRepository {
             "The report reviews common online safety risks and protective strategies for children and families.",
             listOf("Safety", "Children", "Internet"),
             2,
-            2,
-            LocalRegion.TOP
+            2
         ),
         LibraryItem(
             "L09",
@@ -130,8 +120,7 @@ object LibraryRepository {
             "This chapter explains how policy problems are identified, evaluated, and translated into public programs.",
             listOf("Policy", "Society", "Government"),
             2,
-            2,
-            LocalRegion.MIDDLE
+            2
         ),
         LibraryItem(
             "L10",
@@ -144,8 +133,7 @@ object LibraryRepository {
             "The study examines how organizations use digital media channels to reach and engage audiences.",
             listOf("Marketing", "Media", "Digital"),
             2,
-            2,
-            LocalRegion.MIDDLE
+            2
         ),
         LibraryItem(
             "L11",
@@ -158,8 +146,7 @@ object LibraryRepository {
             "The paper discusses strategies for managing water resources in areas facing seasonal shortages.",
             listOf("Water", "Resources", "Environment"),
             2,
-            2,
-            LocalRegion.BOTTOM
+            2
         ),
         LibraryItem(
             "L12",
@@ -172,8 +159,7 @@ object LibraryRepository {
             "This article reviews assessment methods that help teachers evaluate learning progress effectively.",
             listOf("Assessment", "Teaching", "Learning"),
             2,
-            2,
-            LocalRegion.BOTTOM
+            2
         ),
 
         // Page 3 / Zone 3
@@ -188,8 +174,7 @@ object LibraryRepository {
             "This chapter introduces supervised learning, unsupervised learning, and model evaluation concepts.",
             listOf("Machine Learning", "AI", "Models"),
             3,
-            3,
-            LocalRegion.TOP
+            3
         ),
         LibraryItem(
             "L14",
@@ -202,8 +187,7 @@ object LibraryRepository {
             "The report discusses workplace factors that affect employee well-being and mental health support.",
             listOf("Mental Health", "Workplace", "Well-being"),
             3,
-            3,
-            LocalRegion.TOP
+            3
         ),
         LibraryItem(
             "L15",
@@ -216,8 +200,7 @@ object LibraryRepository {
             "This paper examines how organizations prepare supply chains for disruption and uncertainty.",
             listOf("Supply Chain", "Business", "Risk"),
             3,
-            3,
-            LocalRegion.MIDDLE
+            3
         ),
         LibraryItem(
             "L16",
@@ -230,8 +213,7 @@ object LibraryRepository {
             "The study explores how climate topics are introduced in school and university learning materials.",
             listOf("Climate", "Education", "Sustainability"),
             3,
-            3,
-            LocalRegion.MIDDLE
+            3
         ),
         LibraryItem(
             "L17",
@@ -244,8 +226,7 @@ object LibraryRepository {
             "This article reviews planning approaches for smart city services, mobility, and public infrastructure.",
             listOf("Smart City", "Planning", "Urban"),
             3,
-            3,
-            LocalRegion.BOTTOM
+            3
         ),
         LibraryItem(
             "L18",
@@ -258,8 +239,7 @@ object LibraryRepository {
             "This chapter provides guidance on developing research questions, arguments, and academic structure.",
             listOf("Writing", "Research", "Academic"),
             3,
-            3,
-            LocalRegion.BOTTOM
+            3
         ),
 
         // Page 4 / Zone 4
@@ -274,8 +254,7 @@ object LibraryRepository {
             "The paper explains common cybersecurity risks and practical approaches to organizational protection.",
             listOf("Security", "Risk", "Technology"),
             4,
-            4,
-            LocalRegion.TOP
+            4
         ),
         LibraryItem(
             "L20",
@@ -288,8 +267,7 @@ object LibraryRepository {
             "The report evaluates community-based programs designed to improve access to basic health services.",
             listOf("Community", "Health", "Program"),
             4,
-            4,
-            LocalRegion.TOP
+            4
         ),
         LibraryItem(
             "L21",
@@ -302,8 +280,7 @@ object LibraryRepository {
             "The study discusses design principles for games that support motivation and learning outcomes.",
             listOf("Games", "Learning", "Design"),
             4,
-            4,
-            LocalRegion.MIDDLE
+            4
         ),
         LibraryItem(
             "L22",
@@ -316,8 +293,7 @@ object LibraryRepository {
             "This article examines changing consumer behavior in response to digital services and online shopping.",
             listOf("Consumer", "Trends", "Business"),
             4,
-            4,
-            LocalRegion.MIDDLE
+            4
         ),
         LibraryItem(
             "L23",
@@ -330,8 +306,7 @@ object LibraryRepository {
             "This chapter introduces farming practices that balance productivity, soil health, and environmental care.",
             listOf("Agriculture", "Sustainability", "Environment"),
             4,
-            4,
-            LocalRegion.BOTTOM
+            4
         ),
         LibraryItem(
             "L24",
@@ -344,8 +319,7 @@ object LibraryRepository {
             "The paper reviews how human needs, limitations, and behavior influence product and interface design.",
             listOf("HCI", "Design", "Human Factors"),
             4,
-            4,
-            LocalRegion.BOTTOM
+            4
         ),
 
         // Page 5 / Zone 5
@@ -360,8 +334,7 @@ object LibraryRepository {
             "This chapter introduces core sociological concepts such as culture, institutions, and social change.",
             listOf("Sociology", "Society", "Culture"),
             5,
-            5,
-            LocalRegion.TOP
+            5
         ),
         LibraryItem(
             "L26",
@@ -374,8 +347,7 @@ object LibraryRepository {
             "The study reviews cloud service models and their use in education, business, and research settings.",
             listOf("Cloud", "Computing", "Services"),
             5,
-            5,
-            LocalRegion.TOP
+            5
         ),
         LibraryItem(
             "L27",
@@ -388,8 +360,7 @@ object LibraryRepository {
             "This report discusses financial literacy levels among students and strategies for improving awareness.",
             listOf("Finance", "Students", "Literacy"),
             5,
-            5,
-            LocalRegion.MIDDLE
+            5
         ),
         LibraryItem(
             "L28",
@@ -402,8 +373,7 @@ object LibraryRepository {
             "The article discusses ethical concerns in artificial intelligence, including fairness, privacy, and accountability.",
             listOf("AI", "Ethics", "Technology"),
             5,
-            5,
-            LocalRegion.MIDDLE
+            5
         ),
         LibraryItem(
             "L29",
@@ -416,8 +386,7 @@ object LibraryRepository {
             "The study explores how tourism development interacts with local traditions and community identity.",
             listOf("Tourism", "Culture", "Community"),
             5,
-            5,
-            LocalRegion.BOTTOM
+            5
         ),
         LibraryItem(
             "L30",
@@ -430,8 +399,7 @@ object LibraryRepository {
             "This chapter introduces descriptive statistics, basic inference, and data interpretation for researchers.",
             listOf("Statistics", "Methods", "Data"),
             5,
-            5,
-            LocalRegion.BOTTOM
+            5
         )
     )
 }

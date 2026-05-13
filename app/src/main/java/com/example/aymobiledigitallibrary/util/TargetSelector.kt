@@ -1,8 +1,10 @@
 package com.example.aymobiledigitallibrary.util
+
 import com.example.aymobiledigitallibrary.data.LibraryRepository
-import com.example.aymobiledigitallibrary.model.LocalRegion
-import kotlin.random.Random
+
 object TargetSelector {
-    fun globalTargets(participantId: String) = (1..5).map { z -> LibraryRepository.items.filter { it.scrollZoneIndex == z }.random(Random(participantId.hashCode()+z)) }
-    fun localTargets(participantId: String) = listOf(LocalRegion.TOP, LocalRegion.MIDDLE, LocalRegion.BOTTOM).flatMapIndexed { i, r -> LibraryRepository.items.filter { it.localRegion == r }.shuffled(Random(participantId.hashCode()+i)).take(2) }
+    fun globalTargets(): List<Int> = listOf(2, 3, 8, 9, 14, 15, 20, 26)
+    fun localTargets(): List<Int> = listOf(2, 3, 8, 9, 14, 15, 20, 26)
+    fun refindingTargets(): List<Int> = listOf(22, 2, 28, 9, 16)
+    fun itemAt(index: Int) = LibraryRepository.items[index]
 }
