@@ -3,69 +3,162 @@ package com.example.aymobiledigitallibrary.ui.screens
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.aymobiledigitallibrary.data.LibraryRepository
 import com.example.aymobiledigitallibrary.model.BrowsingMode
 import com.example.aymobiledigitallibrary.model.LocalContextRecallResult
-import com.example.aymobiledigitallibrary.ui.components.*
+import com.example.aymobiledigitallibrary.ui.components.CompactLibraryItemCard
+import com.example.aymobiledigitallibrary.ui.components.PrimaryButton
+import com.example.aymobiledigitallibrary.ui.components.ScreenContainer
+import com.example.aymobiledigitallibrary.ui.components.SelectableCard
+import com.example.aymobiledigitallibrary.ui.components.TaskProgressHeader
 import com.example.aymobiledigitallibrary.util.ScoringUtils
 import kotlin.random.Random
 
-data class NeighborOption(val ids: List<String>)
+private data class NeighborOption(
+    val ids: List<String>
+)
 
 @Composable
-fun LocalContextRecallScreen(participantId: String, mode: BrowsingMode, onDone: (List<LocalContextRecallResult>) -> Unit) {
-    val targets = remember { listOf(20, 2, 26, 9, 15, 3, 14, 8).map { LibraryRepository.items[it] } }
+fun LocalContextRecallScreen(
+    participantId: String,
+    mode: BrowsingMode,
+    onDone: (List<LocalContextRecallResult>) -> Unit
+) {
+    val allItems = LibraryRepository.items
+
+    val targets = remember {
+        listOf(20, 2, 26, 9, 15, 3, 14, 8).map { allItems[it] }
+    }
+
     var idx by remember { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<NeighborOption?>(null) }
     var start by remember { mutableLongStateOf(System.currentTimeMillis()) }
     val results = remember { mutableStateListOf<LocalContextRecallResult>() }
+
     val item = targets[idx]
-    val correct = listOf(LibraryRepository.items[LibraryRepository.items.indexOf(item)-1].id, LibraryRepository.items[LibraryRepository.items.indexOf(item)+1].id)
-    val correctSet = correct.toSet()
+    val itemIndex = allItems.indexOfFirst { it.id == item.id }
+
+    val correctNeighborIds = listOf(
+        allItems[itemIndex - 1].id,
+        allItems[itemIndex + 1].id
+    )
+
+    val correctSet = correctNeighborIds.toSet()
+
     val options = remember(participantId, idx) {
-        val itemIndex = LibraryRepository.items.indexOf(item)
         val targetGroupStart = (itemIndex / 6) * 6
         val targetGroupEnd = targetGroupStart + 5
-        val distractorCandidates = LibraryRepository.items.withIndex()
-            .filter { (index, candidate) ->
+
+        val distractorCandidates = allItems.withIndex()
+            .filter { indexedItem ->
+                val index = indexedItem.index
+                val candidate = indexedItem.value
+
                 index % 6 in 1..4 &&
-                    index !in targetGroupStart..targetGroupEnd &&
-                    candidate.id != item.id &&
-                    candidate.id !in correctSet
+                        index !in targetGroupStart..targetGroupEnd &&
+                        candidate.id != item.id &&
+                        candidate.id !in correctSet
             }
             .map { it.index }
+
         val random = Random(participantId.hashCode() * 31 + idx * 101)
-        val selectedDistractorCenters = distractorCandidates.shuffled(random).take(2)
+
+        val selectedDistractorCenters = distractorCandidates
+            .shuffled(random)
+            .take(2)
+
         val distractorPairs = selectedDistractorCenters.map { centerIndex ->
             listOf(
-                LibraryRepository.items[centerIndex - 1].id,
-                LibraryRepository.items[centerIndex + 1].id
+                allItems[centerIndex - 1].id,
+                allItems[centerIndex + 1].id
             )
         }
-        listOf(NeighborOption(correct)) + distractorPairs.map { NeighborOption(it) }
+
+        (listOf(NeighborOption(correctNeighborIds)) + distractorPairs.map { NeighborOption(it) })
             .shuffled(random)
     }
-    val contextLabel = if (mode == BrowsingMode.PAGE_VIEW) "This material appeared on Page ${item.paginationPage}." else "This material appeared in Group ${item.scrollZoneIndex}."
-    val helper = "Materials ${((item.scrollZoneIndex-1)*6)+1}–${item.scrollZoneIndex*6}"
+
+    val materialStart = ((item.scrollZoneIndex - 1) * 6) + 1
+    val materialEnd = item.scrollZoneIndex * 6
+
+    val contextLabel = if (mode == BrowsingMode.PAGE_VIEW) {
+        "This material appeared on Page ${item.paginationPage}."
+    } else {
+        "This material appeared in Group ${item.scrollZoneIndex}."
+    }
+
+    val contextHelper = "Materials $materialStart–$materialEnd"
+
     ScreenContainer(scrollable = true) {
-        TaskProgressHeader("Nearby Context", idx + 1, targets.size)
+        TaskProgressHeader(
+            title = "Nearby Context",
+            step = idx + 1,
+            total = targets.size
+        )
+
         CompactLibraryItemCard(item = item) {}
-        Text(contextLabel); Text(helper)
+
+        Text(contextLabel)
+        Text(contextHelper)
+
         Text("Which materials appeared closest to this material?")
         Text("Choose the nearby pair that best matches what you remember.")
-        options.forEach { opt ->
-            val titles = opt.ids.map { id -> LibraryRepository.items.first { it.id == id }.title }
-            SelectableCard("Nearby materials", "• ${titles[0]}\n• ${titles[1]}", selected == opt) { selected = opt }
+
+        options.forEach { option ->
+            val titles = option.ids.map { id ->
+                allItems.first { it.id == id }.title
+            }
+
+            SelectableCard(
+                title = "Nearby materials",
+                desc = "• ${titles[0]}\n• ${titles[1]}",
+                selected = selected == option,
+                onClick = {
+                    selected = option
+                }
+            )
         }
-        PrimaryButton("Continue", selected != null) {
-            val picked = selected ?: return@PrimaryButton
-            val end = System.currentTimeMillis()
-            results += LocalContextRecallResult(participantId, mode, item.id, correct.joinToString(","), picked.ids.joinToString(","), ScoringUtils.calculateNeighborPairAccuracy(correct, picked.ids), end-start)
-            if (idx == targets.lastIndex) onDone(results) else { idx++; selected = null; start = System.currentTimeMillis() }
-        }
+
+        PrimaryButton(
+            text = "Continue",
+            enabled = selected != null,
+            onClick = {
+                val picked = selected ?: return@PrimaryButton
+                val endTime = System.currentTimeMillis()
+
+                results += LocalContextRecallResult(
+                    participantId = participantId,
+                    browsingMode = mode,
+                    targetItemId = item.id,
+                    correctNeighborItemIdsCsv = correctNeighborIds.joinToString(","),
+                    selectedNeighborItemIdsCsv = picked.ids.joinToString(","),
+                    accuracy = ScoringUtils.calculateNeighborPairAccuracy(
+                        correctIds = correctNeighborIds,
+                        selectedIds = picked.ids
+                    ),
+                    responseTimeMillis = endTime - start
+                )
+
+                if (idx == targets.lastIndex) {
+                    onDone(results)
+                } else {
+                    idx++
+                    selected = null
+                    start = System.currentTimeMillis()
+                }
+            }
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
