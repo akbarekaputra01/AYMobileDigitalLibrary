@@ -29,12 +29,17 @@ fun QuestionnaireScreen(items: List<String>, onDone: (List<QuestionnaireResponse
 
     ScreenContainer(scrollable = true) {
         Text("Experience Questions", style = MaterialTheme.typography.headlineMedium)
-        Text("Please rate your experience. 1 = Strongly Disagree, 5 = Strongly Agree.")
+        Text("Please rate your experience.")
         items.forEachIndexed { idx, q ->
             OutlinedCard {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(q, style = MaterialTheme.typography.titleMedium)
-                    LikertScale(responses[idx] ?: 0, { responses[idx] = it }, "1", "5")
+                    LikertScale(
+                        value = responses[idx] ?: 0,
+                        onValue = { responses[idx] = it },
+                        start = "Strongly Disagree",
+                        end = "Strongly Agree"
+                    )
                 }
             }
         }

@@ -65,45 +65,49 @@ fun SessionSetupScreen(
             }
 
             HorizontalDivider()
+            Text(
+                "Use 1 for the lowest level and 5 for the highest level.",
+                style = MaterialTheme.typography.bodyMedium
+            )
 
             SetupLikertQuestion(
                 question = "1. Familiarity with mobile scrolling",
                 value = s1,
                 onChange = { s1 = it },
-                startLabel = "Not at all",
-                endLabel = "Extremely"
+                startLabel = "Not familiar",
+                endLabel = "Very familiar"
             )
 
             SetupLikertQuestion(
                 question = "2. Familiarity with page-based reading",
                 value = s2,
                 onChange = { s2 = it },
-                startLabel = "Not at all",
-                endLabel = "Extremely"
+                startLabel = "Not familiar",
+                endLabel = "Very familiar"
             )
 
             SetupLikertQuestion(
                 question = "3. Frequency of using reading apps",
                 value = s3,
                 onChange = { s3 = it },
-                startLabel = "Rarely",
-                endLabel = "Daily"
+                startLabel = "Never",
+                endLabel = "Very often"
             )
 
             SetupLikertQuestion(
                 question = "4. Frequency of using digital library apps",
                 value = s4,
                 onChange = { s4 = it },
-                startLabel = "Rarely",
-                endLabel = "Daily"
+                startLabel = "Never",
+                endLabel = "Very often"
             )
 
             SetupLikertQuestion(
                 question = "5. Self-rated spatial ability",
                 value = s5,
                 onChange = { s5 = it },
-                startLabel = "Poor",
-                endLabel = "Excellent"
+                startLabel = "Very low",
+                endLabel = "Very high"
             )
 
             Spacer(modifier = Modifier.height(8.dp))
