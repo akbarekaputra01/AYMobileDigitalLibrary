@@ -22,14 +22,19 @@ object CsvExportBuilder {
         r.summaryMetrics?.let { s ->
             appendLine("=== SUMMARY METRICS ===")
             appendLine("Global Location Accuracy,${s.globalLocationAccuracy}")
+            appendLine("Global Location Accuracy (SD),${s.globalLocationAccuracySd}")
             appendLine("Mean Global Absolute Error,${s.meanGlobalAbsoluteError}")
+            appendLine("Global Absolute Error (SD),${s.globalAbsoluteErrorSd}")
             appendLine("Local Context Accuracy,${s.localContextAccuracy}")
+            appendLine("Local Context Accuracy (SD),${s.localContextAccuracySd}")
             appendLine("Re-finding Success Rate,${s.refindingSuccessRate}")
             appendLine("Mean Re-finding Time (ms),${s.meanRefindingTimeMillis}")
+            appendLine("Re-finding Time (SD),${s.refindingTimeMillisSd}")
             appendLine("Total Wrong Clicks,${s.totalWrongClicks}")
             appendLine("Total Next Clicks,${s.totalNextClicks}")
             appendLine("Total Previous Clicks,${s.totalPreviousClicks}")
             appendLine("Mean Experience Score,${s.meanExperienceScore}")
+            appendLine("Experience Score (SD),${s.experienceScoreSd}")
             appendLine()
         }
 
@@ -41,7 +46,7 @@ object CsvExportBuilder {
         appendLine()
 
         appendLine("=== RAW DATA: LOCAL CONTEXT RECALL ===")
-        appendLine("Target Item ID,Correct Neighbors,Selected Neighbors,Accuracy,Response Time (ms)")
+        appendLine("Target Item ID,Correct Neighbors,,Selected Neighbors,,Accuracy,Response Time (ms)")
         r.localContextRecallResults.forEach { 
             appendLine("${it.targetItemId},${it.correctNeighborItemIdsCsv},${it.selectedNeighborItemIdsCsv},${it.accuracy},${it.responseTimeMillis}")
         }
@@ -50,7 +55,9 @@ object CsvExportBuilder {
         appendLine("=== RAW DATA: RE-FINDING ===")
         appendLine("Target Item ID,Selected Item ID,Success,Start Time,End Time,Time to Find (ms),Wrong Clicks,Next Clicks,Prev Clicks,Final Page,Final Scroll Zone")
         r.refindingResults.forEach { 
-            appendLine("${it.targetItemId},${it.selectedItemId},${it.success},${it.startTimeMillis},${it.endTimeMillis},${it.timeToFindMillis},${it.wrongClickCount},${it.nextClickCount},${it.previousClickCount},${it.finalPage ?: ""},${it.finalScrollZone ?: ""}")
+            val fPage = it.finalPage?.toString() ?: "-"
+            val fZone = it.finalScrollZone?.toString() ?: "-"
+            appendLine("${it.targetItemId},${it.selectedItemId},${it.success},${it.startTimeMillis},${it.endTimeMillis},${it.timeToFindMillis},${it.wrongClickCount},${it.nextClickCount},${it.previousClickCount},$fPage,$fZone")
         }
         appendLine()
 
@@ -65,7 +72,9 @@ object CsvExportBuilder {
         appendLine("=== RAW DATA: INTERACTION LOGS ===")
         appendLine("Event Type,Phase,Timestamp,Item ID,Value")
         r.interactionEvents.forEach { 
-            appendLine("${it.eventType},${it.phase},${it.timestampMillis},${it.itemId ?: ""},${it.value ?: ""}")
+            val itemId = it.itemId ?: "-"
+            val value = it.value ?: "-"
+            appendLine("${it.eventType},${it.phase},${it.timestampMillis},$itemId,$value")
         }
     }
 }

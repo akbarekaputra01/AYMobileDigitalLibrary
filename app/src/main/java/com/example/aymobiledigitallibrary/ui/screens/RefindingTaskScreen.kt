@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -62,6 +65,9 @@ fun RefindingTaskScreen(
     } else {
         allItems
     }
+
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -115,6 +121,7 @@ fun RefindingTaskScreen(
         }
 
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
@@ -129,42 +136,43 @@ fun RefindingTaskScreen(
                             return@LibraryItemCard
                         }
 
-                        val end = System.currentTimeMillis()
+                            val end = System.currentTimeMillis()
 
-                        results += RefindingResult(
-                            participantId = participantId,
-                            browsingMode = mode,
-                            targetItemId = target.id,
-                            selectedItemId = item.id,
-                            success = true,
-                            startTimeMillis = start.longValue,
-                            endTimeMillis = end,
-                            timeToFindMillis = end - start.longValue,
-                            wrongClickCount = wrong,
-                            nextClickCount = nextClicks,
-                            previousClickCount = prevClicks,
-                            finalPage = if (mode == BrowsingMode.PAGE_VIEW) page else null,
-                            finalScrollZone = if (mode == BrowsingMode.CONTINUOUS_LIST) {
-                                (allItems.indexOf(item) / 6) + 1
+                            results += RefindingResult(
+                                participantId = participantId,
+                                browsingMode = mode,
+                                targetItemId = target.id,
+                                selectedItemId = item.id,
+                                success = true,
+                                startTimeMillis = start.longValue,
+                                endTimeMillis = end,
+                                timeToFindMillis = end - start.longValue,
+                                wrongClickCount = wrong,
+                                nextClickCount = nextClicks,
+                                previousClickCount = prevClicks,
+                                finalPage = if (mode == BrowsingMode.PAGE_VIEW) page else null,
+                                finalScrollZone = if (mode == BrowsingMode.CONTINUOUS_LIST) {
+                                    (allItems.indexOf(item) / 6) + 1
+                                } else {
+                                    null
+                                }
+                            )
+
+                            if (trial == targets.lastIndex) {
+                                onDone(results)
                             } else {
-                                null
+                                trial++
+                                wrong = 0
+                                nextClicks = 0
+                                prevClicks = 0
+                                page = 1
+                                start.longValue = System.currentTimeMillis()
+                                scope.launch { listState.scrollToItem(0) }
                             }
-                        )
-
-                        if (trial == targets.lastIndex) {
-                            onDone(results)
-                        } else {
-                            trial++
-                            wrong = 0
-                            nextClicks = 0
-                            prevClicks = 0
-                            page = 1
-                            start.longValue = System.currentTimeMillis()
                         }
-                    }
-                )
+                    )
+                }
             }
-        }
 
         if (mode == BrowsingMode.PAGE_VIEW) {
             Row(

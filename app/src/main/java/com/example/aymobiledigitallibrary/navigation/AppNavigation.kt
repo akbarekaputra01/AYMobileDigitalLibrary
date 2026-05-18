@@ -24,7 +24,26 @@ fun AppNavigation(storage: SessionStorage, resultStorage: ResultStorage) {
         composable(Routes.WELCOME) { WelcomeScreen { nav.navigate(Routes.SESSION_SETUP) } }
         composable(Routes.SESSION_SETUP) { SessionSetupScreen(pid) { storage.saveParticipantInfo(it); resultStorage.logEvent(pid, storage.getMode(), "setup", "participant_info_submitted"); nav.navigate(Routes.BROWSING_MODE_SETUP) } }
         composable(Routes.BROWSING_MODE_SETUP) { BrowsingModeSetupScreen { storage.saveMode(it); resultStorage.logEvent(pid, it, "setup", "browsing_mode_selected"); nav.navigate(Routes.LIBRARY_BROWSING) } }
-        composable(Routes.LIBRARY_BROWSING) { LibraryBrowsingScreen(storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST, { resultStorage.logEvent(pid, storage.getMode(), "browsing", "browsing_started") }, { resultStorage.logEvent(pid, storage.getMode(), "browsing", "browsing_finished") }) { nav.navigate(Routes.SHORT_ACTIVITY) } }
+        composable(Routes.LIBRARY_BROWSING) { 
+            LibraryBrowsingScreen(
+                mode = storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST, 
+                onItemTap = { itemId -> 
+                    if (itemId == "browsing_started_flag") {
+                        resultStorage.logEvent(pid, storage.getMode(), "browsing", "browsing_started")
+                    } else {
+                        resultStorage.logEvent(pid, storage.getMode(), "browsing", "item_clicked", itemId)
+                    }
+                }, 
+                onPageClick = { value -> 
+                    val eventType = if (storage.getMode() == BrowsingMode.PAGE_VIEW) "pagination_page_changed" else "scroll_zone_changed"
+                    resultStorage.logEvent(pid, storage.getMode(), "browsing", eventType, null, value) 
+                },
+                onFinish = { 
+                    resultStorage.logEvent(pid, storage.getMode(), "browsing", "browsing_finished")
+                    nav.navigate(Routes.SHORT_ACTIVITY) 
+                }
+            ) 
+        }
         composable(Routes.SHORT_ACTIVITY) { ShortActivityScreen(pid) { resultStorage.saveDistractorResult(it); resultStorage.logEvent(pid, storage.getMode(), "short_activity", "short_activity_finished"); nav.navigate(Routes.GLOBAL_LOCATION_RECALL) } }
         composable(Routes.GLOBAL_LOCATION_RECALL) { GlobalLocationRecallScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST) { resultStorage.saveGlobalRecallResults(it); it.forEach { r -> resultStorage.logEvent(pid, storage.getMode(), "global_recall", "global_recall_answer_submitted", r.targetItemId) }; nav.navigate(Routes.LOCAL_CONTEXT_RECALL) } }
         composable(Routes.LOCAL_CONTEXT_RECALL) { LocalContextRecallScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST) { resultStorage.saveLocalContextRecallResults(it); it.forEach { r -> resultStorage.logEvent(pid, storage.getMode(), "local_context", "local_context_answer_submitted", r.targetItemId) }; nav.navigate(Routes.REFINDING_TASK) } }
