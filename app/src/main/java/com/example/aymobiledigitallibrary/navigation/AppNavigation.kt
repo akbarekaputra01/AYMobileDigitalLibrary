@@ -30,7 +30,7 @@ fun AppNavigation(storage: SessionStorage, resultStorage: ResultStorage) {
         composable(Routes.LOCAL_CONTEXT_RECALL) { LocalContextRecallScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST) { resultStorage.saveLocalContextRecallResults(it); it.forEach { r -> resultStorage.logEvent(pid, storage.getMode(), "local_context", "local_context_answer_submitted", r.targetItemId) }; nav.navigate(Routes.REFINDING_TASK) } }
         composable(Routes.REFINDING_TASK) { RefindingTaskScreen(pid, storage.getMode() ?: BrowsingMode.CONTINUOUS_LIST, LibraryRepository.items) { resultStorage.saveRefindingResults(it); it.forEach { r -> if (r.wrongClickCount > 0) resultStorage.logEvent(pid, storage.getMode(), "refinding", "refinding_wrong_click", r.targetItemId, r.wrongClickCount.toString()); if (r.success) resultStorage.logEvent(pid, storage.getMode(), "refinding", "refinding_success", r.targetItemId) }; nav.navigate(Routes.QUESTIONNAIRE) } }
         composable(Routes.QUESTIONNAIRE) {
-            QuestionnaireScreen(listOf("It was easy to complete the tasks.", "I felt confident finding materials.", "The browsing method felt natural.")) {
+            QuestionnaireScreen(listOf("It was easy to complete the tasks.", "I felt confident finding books.", "The browsing method felt natural.")) {
                 resultStorage.saveQuestionnaireResponses(it); resultStorage.logEvent(pid, storage.getMode(), "questionnaire", "questionnaire_submitted")
                 nav.navigate(Routes.THANK_YOU)
             }

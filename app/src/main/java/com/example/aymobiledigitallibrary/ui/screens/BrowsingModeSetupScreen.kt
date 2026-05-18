@@ -27,12 +27,12 @@ fun BrowsingModeSetupScreen(
         ) {
             SectionTitle(
                 "Browsing Mode Setup",
-                "Select how materials will be displayed in this session."
+                "Select how books will be displayed in this session."
             )
 
             SelectableCard(
                 title = "Continuous List",
-                desc = "Browse all materials in one continuous vertical list.",
+                desc = "Browse all books in one continuous vertical list.",
                 selected = selectedMode == "CONT",
                 onClick = {
                     selectedMode = "CONT"
@@ -41,7 +41,7 @@ fun BrowsingModeSetupScreen(
 
             SelectableCard(
                 title = "Page View",
-                desc = "Browse materials across separate pages.",
+                desc = "Browse books across separate pages.",
                 selected = selectedMode == "PAGE",
                 onClick = {
                     selectedMode = "PAGE"

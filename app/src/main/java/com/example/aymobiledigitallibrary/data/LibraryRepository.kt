@@ -1,405 +1,256 @@
 package com.example.aymobiledigitallibrary.data
 
 object LibraryRepository {
-    val items = listOf(
-        // Page 1 / Zone 1
-        LibraryItem(
-            "L01",
-            "Introduction to Data Science",
-            "M. Anderson, R. Wijaya",
-            2024,
-            "Data Science",
-            "Book Chapter",
-            52,
-            "This chapter introduces basic concepts in data collection, analysis, and interpretation for modern research.",
-            listOf("Data", "Analysis", "Research"),
-            1,
-            1
-        ),
-        LibraryItem(
-            "L02",
-            "Mobile Learning Practices",
-            "S. Nakamura, D. Pratama",
-            2023,
-            "Education",
-            "Journal Article",
-            41,
-            "The article explores how students use mobile devices to access learning materials outside the classroom.",
-            listOf("Learning", "Mobile", "Students"),
-            1,
-            1
-        ),
-        LibraryItem(
-            "L03",
-            "Urban Air Quality",
-            "L. Chen, A. Putri",
-            2025,
-            "Environmental Studies",
-            "Research Report",
-            38,
-            "This report examines air quality patterns in urban areas and discusses public health implications.",
-            listOf("Environment", "Urban", "Health"),
-            1,
-            1
-        ),
-        LibraryItem(
-            "L04",
-            "Digital Banking Adoption",
-            "H. Santoso, K. Miller",
-            2022,
-            "Business",
-            "Conference Paper",
-            47,
-            "The study investigates factors that influence the adoption of digital banking services among young adults.",
-            listOf("Banking", "Digital", "Business"),
-            1,
-            1
-        ),
-        LibraryItem(
-            "L05",
-            "Basic Human Nutrition",
-            "E. Rahman, T. Brooks",
-            2024,
-            "Health Sciences",
-            "Book Chapter",
-            33,
-            "This chapter reviews essential nutrients and their role in maintaining everyday health.",
-            listOf("Nutrition", "Health", "Food"),
-            1,
-            1
-        ),
-        LibraryItem(
-            "L06",
-            "Foundations of Psychology",
-            "A. Tan, N. Hartono",
-            2023,
-            "Psychology",
-            "Journal Article",
-            44,
-            "The article presents key psychological concepts related to behavior, attention, and decision-making.",
-            listOf("Psychology", "Behavior", "Mind"),
-            1,
-            1
-        ),
+    private const val IMAGE_PATH = "file:///android_asset/BookCovers/"
 
-        // Page 2 / Zone 2
-        LibraryItem(
-            "L07",
-            "Renewable Energy Systems",
-            "P. Wilson, F. Nugroho",
-            2025,
-            "Engineering",
-            "Journal Article",
-            58,
-            "This paper discusses solar, wind, and hybrid energy systems for sustainable infrastructure.",
-            listOf("Energy", "Engineering", "Sustainability"),
-            2,
-            2
-        ),
-        LibraryItem(
-            "L08",
-            "Children and Online Safety",
-            "R. Dewi, M. Collins",
-            2022,
-            "Information Technology",
-            "Research Report",
-            35,
-            "The report reviews common online safety risks and protective strategies for children and families.",
-            listOf("Safety", "Children", "Internet"),
-            2,
-            2
-        ),
-        LibraryItem(
-            "L09",
-            "Public Policy Analysis",
-            "J. Lee, V. Mahendra",
-            2024,
-            "Social Sciences",
-            "Book Chapter",
-            49,
-            "This chapter explains how policy problems are identified, evaluated, and translated into public programs.",
-            listOf("Policy", "Society", "Government"),
-            2,
-            2
-        ),
-        LibraryItem(
-            "L10",
-            "Marketing in Digital Media",
-            "C. Evans, Y. Saputra",
-            2023,
-            "Business",
-            "Conference Paper",
-            40,
-            "The study examines how organizations use digital media channels to reach and engage audiences.",
-            listOf("Marketing", "Media", "Digital"),
-            2,
-            2
-        ),
-        LibraryItem(
-            "L11",
-            "Water Resource Management",
-            "D. Permana, S. Lewis",
-            2026,
-            "Environmental Studies",
-            "Journal Article",
-            54,
-            "The paper discusses strategies for managing water resources in areas facing seasonal shortages.",
-            listOf("Water", "Resources", "Environment"),
-            2,
-            2
-        ),
-        LibraryItem(
-            "L12",
-            "Classroom Assessment Methods",
-            "M. Suryadi, A. Gordon",
-            2022,
-            "Education",
-            "Journal Article",
-            37,
-            "This article reviews assessment methods that help teachers evaluate learning progress effectively.",
-            listOf("Assessment", "Teaching", "Learning"),
-            2,
-            2
-        ),
-
-        // Page 3 / Zone 3
-        LibraryItem(
-            "L13",
-            "Machine Learning Overview",
-            "K. Yamamoto, B. Setiawan",
-            2025,
-            "Computer Science",
-            "Book Chapter",
-            63,
-            "This chapter introduces supervised learning, unsupervised learning, and model evaluation concepts.",
-            listOf("Machine Learning", "AI", "Models"),
-            3,
-            3
-        ),
-        LibraryItem(
-            "L14",
-            "Mental Health at Work",
-            "N. Brooks, L. Amelia",
-            2024,
-            "Health Sciences",
-            "Research Report",
-            46,
-            "The report discusses workplace factors that affect employee well-being and mental health support.",
-            listOf("Mental Health", "Workplace", "Well-being"),
-            3,
-            3
-        ),
-        LibraryItem(
-            "L15",
-            "Supply Chain Resilience",
-            "G. Parker, R. Kusuma",
-            2023,
-            "Business",
-            "Journal Article",
-            51,
-            "This paper examines how organizations prepare supply chains for disruption and uncertainty.",
-            listOf("Supply Chain", "Business", "Risk"),
-            3,
-            3
-        ),
-        LibraryItem(
-            "L16",
-            "Climate Change Education",
-            "T. Wibowo, S. Martin",
-            2026,
-            "Education",
-            "Conference Paper",
-            43,
-            "The study explores how climate topics are introduced in school and university learning materials.",
-            listOf("Climate", "Education", "Sustainability"),
-            3,
-            3
-        ),
-        LibraryItem(
-            "L17",
-            "Smart City Planning",
-            "H. Maulana, P. Carter",
-            2022,
-            "Urban Studies",
-            "Journal Article",
-            39,
-            "This article reviews planning approaches for smart city services, mobility, and public infrastructure.",
-            listOf("Smart City", "Planning", "Urban"),
-            3,
-            3
-        ),
-        LibraryItem(
-            "L18",
-            "Research Writing Skills",
-            "A. Larasati, E. Johnson",
-            2024,
-            "Academic Skills",
-            "Book Chapter",
-            45,
-            "This chapter provides guidance on developing research questions, arguments, and academic structure.",
-            listOf("Writing", "Research", "Academic"),
-            3,
-            3
-        ),
-
-        // Page 4 / Zone 4
-        LibraryItem(
-            "L19",
-            "Cybersecurity Risk Basics",
-            "V. Kurniawan, J. Taylor",
-            2025,
-            "Information Technology",
-            "Journal Article",
-            60,
-            "The paper explains common cybersecurity risks and practical approaches to organizational protection.",
-            listOf("Security", "Risk", "Technology"),
-            4,
-            4
-        ),
-        LibraryItem(
-            "L20",
-            "Community Health Programs",
-            "F. Rahma, C. Bennett",
-            2023,
-            "Health Sciences",
-            "Research Report",
-            36,
-            "The report evaluates community-based programs designed to improve access to basic health services.",
-            listOf("Community", "Health", "Program"),
-            4,
-            4
-        ),
-        LibraryItem(
-            "L21",
-            "Educational Game Design",
-            "D. Siregar, M. White",
-            2026,
-            "Educational Technology",
-            "Conference Paper",
-            57,
-            "The study discusses design principles for games that support motivation and learning outcomes.",
-            listOf("Games", "Learning", "Design"),
-            4,
-            4
-        ),
-        LibraryItem(
-            "L22",
-            "Consumer Behavior Trends",
-            "R. Anggraini, L. Morgan",
-            2022,
-            "Business",
-            "Journal Article",
-            42,
-            "This article examines changing consumer behavior in response to digital services and online shopping.",
-            listOf("Consumer", "Trends", "Business"),
-            4,
-            4
-        ),
-        LibraryItem(
-            "L23",
-            "Sustainable Agriculture",
-            "Y. Kim, A. Nugraha",
-            2024,
-            "Environmental Studies",
-            "Book Chapter",
-            34,
-            "This chapter introduces farming practices that balance productivity, soil health, and environmental care.",
-            listOf("Agriculture", "Sustainability", "Environment"),
-            4,
-            4
-        ),
-        LibraryItem(
-            "L24",
-            "Human Factors in Design",
-            "M. Hart, S. Wijaya",
-            2025,
-            "Human-Computer Interaction",
-            "Journal Article",
-            55,
-            "The paper reviews how human needs, limitations, and behavior influence product and interface design.",
-            listOf("HCI", "Design", "Human Factors"),
-            4,
-            4
-        ),
-
-        // Page 5 / Zone 5
-        LibraryItem(
-            "L25",
-            "Introduction to Sociology",
-            "K. Brown, I. Mahendra",
-            2023,
-            "Social Sciences",
-            "Book Chapter",
-            31,
-            "This chapter introduces core sociological concepts such as culture, institutions, and social change.",
-            listOf("Sociology", "Society", "Culture"),
-            5,
-            5
-        ),
-        LibraryItem(
-            "L26",
-            "Cloud Computing Services",
-            "A. Maeda, R. Prasetyo",
-            2026,
-            "Computer Science",
-            "Conference Paper",
-            64,
-            "The study reviews cloud service models and their use in education, business, and research settings.",
-            listOf("Cloud", "Computing", "Services"),
-            5,
-            5
-        ),
-        LibraryItem(
-            "L27",
-            "Financial Literacy for Students",
-            "E. Putri, J. Wilson",
-            2022,
-            "Economics",
-            "Research Report",
-            29,
-            "This report discusses financial literacy levels among students and strategies for improving awareness.",
-            listOf("Finance", "Students", "Literacy"),
-            5,
-            5
-        ),
-        LibraryItem(
-            "L28",
-            "Artificial Intelligence Ethics",
-            "C. Rivera, H. Setiawan",
-            2024,
-            "Information Technology",
-            "Journal Article",
-            68,
-            "The article discusses ethical concerns in artificial intelligence, including fairness, privacy, and accountability.",
-            listOf("AI", "Ethics", "Technology"),
-            5,
-            5
-        ),
-        LibraryItem(
-            "L29",
-            "Tourism and Local Culture",
-            "N. Watanabe, P. Gunawan",
-            2025,
-            "Cultural Studies",
-            "Conference Paper",
-            32,
-            "The study explores how tourism development interacts with local traditions and community identity.",
-            listOf("Tourism", "Culture", "Community"),
-            5,
-            5
-        ),
-        LibraryItem(
-            "L30",
-            "Statistics for Research",
-            "B. Allen, M. Aulia",
-            2026,
-            "Research Methods",
-            "Book Chapter",
-            50,
-            "This chapter introduces descriptive statistics, basic inference, and data interpretation for researchers.",
-            listOf("Statistics", "Methods", "Data"),
-            5,
-            5
-        )
-    )
+    val items =
+            listOf(
+                    // URUTAN SESUAI DAFTAR FILE GOOGLE DRIVE (A - Z)
+                    LibraryItem(
+                            "B01",
+                            "Alice's Adventures in Wonderland",
+                            "Lewis Carroll",
+                            "1865",
+                            "Fiction",
+                            "${IMAGE_PATH}alice.png"
+                    ),
+                    LibraryItem(
+                            "B02",
+                            "King Arthur and His Knights",
+                            "Howard Pyle",
+                            "1903",
+                            "Mythology & Fiction",
+                            "${IMAGE_PATH}arthur.png"
+                    ),
+                    LibraryItem(
+                            "B03",
+                            "Big Hero 6",
+                            "Disney Press",
+                            "2014",
+                            "Sci-Fi & Adventure",
+                            "${IMAGE_PATH}bighero6.jpg"
+                    ),
+                    LibraryItem(
+                            "B04",
+                            "A Christmas Carol",
+                            "Charles Dickens",
+                            "1843",
+                            "Fiction",
+                            "${IMAGE_PATH}christmas.png"
+                    ),
+                    LibraryItem(
+                            "B05",
+                            "Cinderella",
+                            "Charles Perrault",
+                            "1697",
+                            "Children's Literature",
+                            "${IMAGE_PATH}Cinderella.png" // Menggunakan 'C' besar sesuai gambar
+                    ),
+                    LibraryItem(
+                            "B06",
+                            "The Hundred and One Dalmatians",
+                            "Dodie Smith",
+                            "1956",
+                            "Children's Fiction",
+                            "${IMAGE_PATH}dalmation.png"
+                    ),
+                    LibraryItem(
+                            "B07",
+                            "Freaky Friday",
+                            "Mary Rodgers",
+                            "1972",
+                            "Comedy & Fiction",
+                            "${IMAGE_PATH}freakyfriday.png"
+                    ),
+                    LibraryItem(
+                            "B08",
+                            "The Frog Princess",
+                            "E.D. Baker",
+                            "2002",
+                            "Fantasy",
+                            "${IMAGE_PATH}frog princess.png" // Menggunakan spasi biasa, bukan
+                            // underscore (_)
+                            ),
+                    LibraryItem(
+                            "B09",
+                            "The Epic of Gilgamesh",
+                            "Ancient Mesopotamian Authors",
+                            "2003",
+                            "World Literature",
+                            "${IMAGE_PATH}gilgamesh.png"
+                    ),
+                    LibraryItem(
+                            "B10",
+                            "Heracles",
+                            "Greek Mythological Records",
+                            "2022",
+                            "Mythology",
+                            "${IMAGE_PATH}heracles.png"
+                    ),
+                    LibraryItem(
+                            "B11",
+                            "Holes",
+                            "Louis Sachar",
+                            "1998",
+                            "Young Adult Fiction",
+                            "${IMAGE_PATH}holes.png"
+                    ),
+                    LibraryItem(
+                            "B12",
+                            "The Hunchback of Notre-Dame",
+                            "Victor Hugo",
+                            "1831",
+                            "Historical Fiction",
+                            "${IMAGE_PATH}hunchbac.jpg"
+                    ),
+                    LibraryItem(
+                            "B13",
+                            "The Incredible Journey",
+                            "Sheila Burnford",
+                            "1961",
+                            "Adventure",
+                            "${IMAGE_PATH}incredible journey.png" // FIX: Menggunakan spasi sesuai
+                            // gambar list
+                            ),
+                    LibraryItem(
+                            "B14",
+                            "The Jungle Book",
+                            "Rudyard Kipling",
+                            "1894",
+                            "Children's Fiction",
+                            "${IMAGE_PATH}jungle.png"
+                    ),
+                    LibraryItem(
+                            "B15",
+                            "Lottie and Lisa",
+                            "Erich Kästner",
+                            "1949",
+                            "Children's Fiction",
+                            "${IMAGE_PATH}lottie&lisa.png"
+                    ),
+                    LibraryItem(
+                            "B16",
+                            "Mary Poppins",
+                            "P.L. Travers",
+                            "1934",
+                            "Fantasy",
+                            "${IMAGE_PATH}marypopping.jpg"
+                    ),
+                    LibraryItem(
+                            "B17",
+                            "Medusa: A Chronicle of Olive and Shadow",
+                            "Mythological Adaptation",
+                            "2024",
+                            "Mythology",
+                            "${IMAGE_PATH}medusa.png"
+                    ),
+                    LibraryItem(
+                            "B18",
+                            "Musashi: A Saga of Sword and Spirit",
+                            "Eiji Yoshikawa",
+                            "1935",
+                            "Biographical Fiction",
+                            "${IMAGE_PATH}musashi.png"
+                    ),
+                    LibraryItem(
+                            "B19",
+                            "The Nutcracker and the Mouse King",
+                            "E.T.A. Hoffmann",
+                            "1816",
+                            "Fantasy",
+                            "${IMAGE_PATH}nutcracker.png"
+                    ),
+                    LibraryItem(
+                            "B20",
+                            "The Adventures of Pinocchio",
+                            "Carlo Collodi",
+                            "1883",
+                            "Children's Fiction",
+                            "${IMAGE_PATH}pinocchio.jpg"
+                    ),
+                    LibraryItem(
+                            "B21",
+                            "Rapunzel",
+                            "Brothers Grimm",
+                            "1812",
+                            "Fairy Tale",
+                            "${IMAGE_PATH}rapunzel.png"
+                    ),
+                    LibraryItem(
+                            "B22",
+                            "The Merry Adventures of Robin Hood",
+                            "Howard Pyle",
+                            "1883",
+                            "Folklore",
+                            "${IMAGE_PATH}ROBINHOOD.png" // Sesuai gambar: HURUF BESAR SEMUA
+                    ),
+                    LibraryItem(
+                            "B23",
+                            "Who Censored Roger Rabbit?",
+                            "Gary K. Wolf",
+                            "1981",
+                            "Mystery & Comedy",
+                            "${IMAGE_PATH}rogerrabbit.png"
+                    ),
+                    LibraryItem(
+                            "B24",
+                            "Sleeping Beauty",
+                            "Charles Perrault",
+                            "1697",
+                            "Fairy Tale",
+                            "${IMAGE_PATH}sleeping beauty.png" // Sesuai gambar: huruf kecil semua
+                            // dengan spasi
+                            ),
+                    LibraryItem(
+                            "B25",
+                            "Snow Queen",
+                            "Hans Christian Andersen",
+                            "1844",
+                            "Fairy Tale",
+                            "${IMAGE_PATH}Snow Queen.png" // Sesuai gambar: 'S' dan 'Q' besar dengan
+                            // spasi
+                            ),
+                    LibraryItem(
+                            "B26",
+                            "Snow White",
+                            "Brothers Grimm",
+                            "1812",
+                            "Fairy Tale",
+                            "${IMAGE_PATH}snow white.png" // Sesuai gambar: huruf kecil semua dengan
+                            // spasi
+                            ),
+                    LibraryItem(
+                            "B27",
+                            "Tarzan of the Apes",
+                            "Edgar Rice Burroughs",
+                            "1912",
+                            "Adventure",
+                            "${IMAGE_PATH}tarzan.png"
+                    ),
+                    LibraryItem(
+                            "B28",
+                            "Bridge to Terabithia",
+                            "Katherine Paterson",
+                            "1977",
+                            "Drama & Fiction",
+                            "${IMAGE_PATH}terabithia.png"
+                    ),
+                    LibraryItem(
+                            "B29",
+                            "The Little Mermaid",
+                            "Hans Christian Andersen",
+                            "1837",
+                            "Fairy Tale",
+                            "${IMAGE_PATH}The Little Mermaid.png" // FIX: Nama file lengkap sesuai
+                            // list Drive Anda
+                            ),
+                    LibraryItem(
+                            "B30",
+                            "Tuck Everlasting",
+                            "Natalie Babbitt",
+                            "1975",
+                            "Fantasy Fiction",
+                            "${IMAGE_PATH}tuckeverlasting.png"
+                    )
+            )
 }

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.example.aymobiledigitallibrary.data.LibraryItem
 import com.example.aymobiledigitallibrary.model.BrowsingMode
 import com.example.aymobiledigitallibrary.model.RefindingResult
+import com.example.aymobiledigitallibrary.ui.components.LibraryItemCard
 import com.example.aymobiledigitallibrary.ui.components.SecondaryButton
 import com.example.aymobiledigitallibrary.ui.components.TaskProgressHeader
 
@@ -57,7 +58,7 @@ fun RefindingTaskScreen(
 
     val target = targets[trial]
     val shownItems = if (mode == BrowsingMode.PAGE_VIEW) {
-        allItems.filter { it.paginationPage == page }
+        allItems.chunked(6).getOrElse(page - 1) { emptyList() }
     } else {
         allItems
     }
@@ -72,13 +73,13 @@ fun RefindingTaskScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         TaskProgressHeader(
-            title = "Find This Material • ${trial + 1} of ${targets.size}",
+            title = "Find This Book • ${trial + 1} of ${targets.size}",
             step = trial + 1,
             total = targets.size
         )
 
         Text(
-            text = "Find the target material in the library below.",
+            text = "Find the target in the library below.",
             style = MaterialTheme.typography.bodySmall
         )
 
@@ -91,7 +92,7 @@ fun RefindingTaskScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Library materials",
+                text = "Library",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
@@ -107,7 +108,7 @@ fun RefindingTaskScreen(
 
         if (wrong > 0) {
             Text(
-                text = "That is not the material. Keep looking.",
+                text = "That is not the target. Keep looking.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error
             )
@@ -120,13 +121,12 @@ fun RefindingTaskScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(shownItems) { item ->
-                RefindingListItemCard(
+                LibraryItemCard(
                     item = item,
-                    materialNumber = allItems.indexOfFirst { it.id == item.id } + 1,
                     onClick = {
                         if (item.id != target.id) {
                             wrong++
-                            return@RefindingListItemCard
+                            return@LibraryItemCard
                         }
 
                         val end = System.currentTimeMillis()
@@ -145,7 +145,7 @@ fun RefindingTaskScreen(
                             previousClickCount = prevClicks,
                             finalPage = if (mode == BrowsingMode.PAGE_VIEW) page else null,
                             finalScrollZone = if (mode == BrowsingMode.CONTINUOUS_LIST) {
-                                item.scrollZoneIndex
+                                (allItems.indexOf(item) / 6) + 1
                             } else {
                                 null
                             }
@@ -199,92 +199,13 @@ fun RefindingTaskScreen(
 private fun RefindingTargetPanel(
     target: LibraryItem
 ) {
-    OutlinedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.28f)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "TARGET",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
         )
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "TARGET MATERIAL",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = target.title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = target.authors,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = "${target.year} • ${target.documentType}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = "Category: ${target.category}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun RefindingListItemCard(
-    item: LibraryItem,
-    materialNumber: Int,
-    onClick: () -> Unit
-) {
-    OutlinedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "Material ${materialNumber.toString().padStart(2, '0')}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = item.authors,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = "${item.year} • ${item.documentType} • ${item.category}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        LibraryItemCard(item = target, onClick = {})
     }
 }

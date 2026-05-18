@@ -11,7 +11,7 @@ import androidx.compose.runtime.setValue
 import com.example.aymobiledigitallibrary.data.LibraryRepository
 import com.example.aymobiledigitallibrary.model.BrowsingMode
 import com.example.aymobiledigitallibrary.model.GlobalRecallResult
-import com.example.aymobiledigitallibrary.ui.components.CompactLibraryItemCard
+import com.example.aymobiledigitallibrary.ui.components.LibraryItemCard
 import com.example.aymobiledigitallibrary.ui.components.PrimaryButton
 import com.example.aymobiledigitallibrary.ui.components.ScreenContainer
 import com.example.aymobiledigitallibrary.ui.components.SelectableCard
@@ -40,11 +40,11 @@ fun GlobalLocationRecallScreen(
     }
 
     val helpers = listOf(
-        "Materials 1–6",
-        "Materials 7–12",
-        "Materials 13–18",
-        "Materials 19–24",
-        "Materials 25–30"
+        "Books 1–6",
+        "Books 7–12",
+        "Books 13–18",
+        "Books 19–24",
+        "Books 25–30"
     )
 
     val item = targets[idx]
@@ -56,9 +56,9 @@ fun GlobalLocationRecallScreen(
             total = targets.size
         )
 
-        CompactLibraryItemCard(item = item) {}
+        LibraryItemCard(item = item) {}
 
-        Text("Where did this material appear in the library?")
+        Text("Where did this book appear in the library?")
 
         options.forEachIndexed { optionIndex, optionTitle ->
             val optionValue = optionIndex + 1
@@ -77,11 +77,8 @@ fun GlobalLocationRecallScreen(
             text = "Continue",
             enabled = selected != -1,
             onClick = {
-                val correct = if (mode == BrowsingMode.PAGE_VIEW) {
-                    item.paginationPage
-                } else {
-                    item.scrollZoneIndex
-                }
+                val itemIndex = LibraryRepository.items.indexOfFirst { it.id == item.id }
+                val correct = (itemIndex / 6) + 1
 
                 val endTime = System.currentTimeMillis()
 

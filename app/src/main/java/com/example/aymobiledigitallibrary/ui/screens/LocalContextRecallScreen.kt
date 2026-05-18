@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.example.aymobiledigitallibrary.data.LibraryRepository
 import com.example.aymobiledigitallibrary.model.BrowsingMode
 import com.example.aymobiledigitallibrary.model.LocalContextRecallResult
-import com.example.aymobiledigitallibrary.ui.components.CompactLibraryItemCard
+import com.example.aymobiledigitallibrary.ui.components.LibraryItemCard
 import com.example.aymobiledigitallibrary.ui.components.PrimaryButton
 import com.example.aymobiledigitallibrary.ui.components.ScreenContainer
 import com.example.aymobiledigitallibrary.ui.components.SelectableCard
@@ -88,16 +88,18 @@ fun LocalContextRecallScreen(
             .shuffled(random)
     }
 
-    val materialStart = ((item.scrollZoneIndex - 1) * 6) + 1
-    val materialEnd = item.scrollZoneIndex * 6
+    val calculatedPageOrZone = (itemIndex / 6) + 1
+
+    val materialStart = ((calculatedPageOrZone - 1) * 6) + 1
+    val materialEnd = calculatedPageOrZone * 6
 
     val contextLabel = if (mode == BrowsingMode.PAGE_VIEW) {
-        "This material appeared on Page ${item.paginationPage}."
+        "This book appeared on Page $calculatedPageOrZone."
     } else {
-        "This material appeared in Group ${item.scrollZoneIndex}."
+        "This book appeared in Group $calculatedPageOrZone."
     }
 
-    val contextHelper = "Materials $materialStart–$materialEnd"
+    val contextHelper = "Books $materialStart–$materialEnd"
 
     ScreenContainer(scrollable = true) {
         TaskProgressHeader(
@@ -106,12 +108,12 @@ fun LocalContextRecallScreen(
             total = targets.size
         )
 
-        CompactLibraryItemCard(item = item) {}
+        LibraryItemCard(item = item) {}
 
         Text(contextLabel)
         Text(contextHelper)
 
-        Text("Which materials appeared closest to this material?")
+        Text("Which books appeared closest to this book?")
         Text("Choose the nearby pair that best matches what you remember.")
 
         options.forEach { option ->
@@ -120,7 +122,7 @@ fun LocalContextRecallScreen(
             }
 
             SelectableCard(
-                title = "Nearby materials",
+                title = "Nearby books",
                 desc = "• ${titles[0]}\n• ${titles[1]}",
                 selected = selected == option,
                 onClick = {

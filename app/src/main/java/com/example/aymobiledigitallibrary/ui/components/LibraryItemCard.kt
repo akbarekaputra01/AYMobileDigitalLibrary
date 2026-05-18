@@ -23,10 +23,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.aymobiledigitallibrary.data.LibraryItem
+
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,17 +51,29 @@ fun LibraryItemCard(
             defaultElevation = 2.dp
         )
     ) {
-        Column(
+        Row(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.Top
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.Top
-            ) {
+            if (item.imagePath.isNotEmpty()) {
+                AsyncImage(
+                    model = item.imagePath,
+                    contentDescription = item.title,
+                    modifier = Modifier
+                        .width(64.dp)
+                        .height(96.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .width(64.dp)
+                        .height(96.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(8.dp)
@@ -70,20 +87,22 @@ fun LibraryItemCard(
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                AssistChip(
+                    onClick = {},
+                    enabled = false,
+                    label = {
+                        Text(text = item.category)
+                    }
+                )
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    AssistChip(
-                        onClick = {},
-                        enabled = false,
-                        label = {
-                            Text(text = item.category)
-                        }
-                    )
-
-                    Text(text = "Material ${item.id.removePrefix("L")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
                     Text(
                         text = item.title,
                         style = MaterialTheme.typography.titleMedium,
@@ -93,38 +112,11 @@ fun LibraryItemCard(
                     )
 
                     Text(
-                        text = item.authors,
+                        text = "${item.authors} • ${item.year}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            Text(
-                text = "${item.year} • ${item.documentType} • ${item.citationCount} citations",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = item.abstractPreview,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                items(item.tags) { tag ->
-                    SuggestionChip(
-                        onClick = {},
-                        enabled = false,
-                        label = {
-                            Text(text = tag)
-                        }
                     )
                 }
             }

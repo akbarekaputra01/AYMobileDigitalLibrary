@@ -8,15 +8,15 @@ object TaskRepository {
     val refindingTargetIndices = listOf(5,16,27)
     val workloadItems = listOf(
         "I needed a lot of mental effort to complete the activities.",
-        "I felt unsure about where materials were located.",
-        "I felt frustrated when trying to find materials again.",
-        "It was difficult to remember where materials appeared."
+        "I felt unsure about where books were located.",
+        "I felt frustrated when trying to find books again.",
+        "It was difficult to remember where books appeared."
     )
     val usabilityItems = listOf(
         "The interface was easy to use.",
         "The item layout was clear.",
         "It was easy to browse the library.",
-        "It was easy to find previously seen materials.",
+        "It was easy to find previously seen books.",
         "I would use this interface for a mobile digital library."
     )
 }

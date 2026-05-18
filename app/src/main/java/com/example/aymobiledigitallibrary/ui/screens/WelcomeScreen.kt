@@ -22,69 +22,61 @@ import com.example.aymobiledigitallibrary.ui.components.PrimaryButton
 import com.example.aymobiledigitallibrary.ui.components.ScreenContainer
 
 @Composable
-fun WelcomeScreen(
-    onStart: () -> Unit
-) {
+fun WelcomeScreen(onStart: () -> Unit) {
     ScreenContainer {
         Spacer(modifier = Modifier.height(24.dp))
 
         Card {
             Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(18.dp)
-                        ),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                        modifier =
+                                Modifier.size(72.dp)
+                                        .background(
+                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                shape = RoundedCornerShape(18.dp)
+                                        ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "LIB",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Bold
+                            text = "LIB",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold
                     )
                 }
 
                 Text(
-                    text = "Mobile Digital Library",
-                    style = MaterialTheme.typography.headlineLarge,
-                    textAlign = TextAlign.Center
+                        text = "Mobile Digital Library",
+                        style = MaterialTheme.typography.headlineLarge,
+                        textAlign = TextAlign.Center
                 )
 
                 Text(
-                    text = "Explore academic materials on your phone",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                        text = "Explore academic books on your phone",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
                 )
 
                 Text(
-                    text = "Browse a collection of academic materials and complete a few short activities related to what you viewed.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
+                        text =
+                                "Browse a collection of academic books and complete a few short activities related to what you viewed.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
                 )
 
                 AssistChip(
-                    onClick = {},
-                    enabled = false,
-                    label = {
-                        Text(text = "Estimated time: 10–15 mins")
-                    }
+                        onClick = {},
+                        enabled = false,
+                        label = { Text(text = "Estimated time: 10-15 mins") }
                 )
 
-                PrimaryButton(
-                    text = "Start",
-                    onClick = {
-                        onStart()
-                    }
-                )
+                PrimaryButton(text = "Start", onClick = { onStart() })
             }
         }
     }
